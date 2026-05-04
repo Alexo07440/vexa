@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Vexa"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>Vexa</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0a0f'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%237c6af7'/%3E%3Cstop offset='100%25' stop-color='%23f26b8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='90' cy='90' r='70' fill='url(%23g)'/%3E%3Ctext x='90' y='118' text-anchor='middle' font-family='Arial Black' font-weight='900' font-size='80' fill='white'%3EA%3C/text%3E%3C/svg%3E"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;--bg4:#22222f;
+  --acc:#7c6af7;--acc2:#f26b8a;--acc3:#4ecdc4;--acc4:#ffd166;
+  --txt:#f0f0f8;--txt2:#9898b8;
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;}
+#app{height:100%;display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+h2{font-weight:800;font-size:20px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:inherit;}
+input,textarea,select{font-family:inherit;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--bg4);}
+.card{background:var(--bg2);border:1px solid var(--bg4);border-radius:16px;padding:14px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;border:none;}
+.btn-p{background:var(--acc);color:#fff;}
+.btn-g{background:var(--bg3);color:var(--txt2);border:1px solid var(--bg4);}
+.btn-d{background:#ff4d6d18;color:#ff4d6d;border:1px solid #ff4d6d33;}
+.inp{width:100%;background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;padding:10px 14px;color:var(--txt);font-size:14px;outline:none;}
+.inp:focus{border-color:var(--acc);}
+.inp::placeholder{color:var(--txt2);}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes scanline{0%,100%{top:8%}50%{top:88%}}
+.anim{animation:fi .2s ease both}
+.spin{width:16px;height:16px;border:2px solid var(--bg4);border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite;display:inline-block;flex-shrink:0;}
+.page{display:none;flex:1;overflow-y:auto;padding:14px;padding-bottom:calc(14px + var(--sb));flex-direction:column;gap:12px;}
+.page.active{display:flex;}
+#header{background:var(--bg2);border-bottom:1px solid var(--bg4);padding-top:calc(10px + var(--st));padding:calc(10px + var(--st)) 12px 0;flex-shrink:0;}
+#tabs{display:flex;overflow-x:auto;scrollbar-width:none;}
+#tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 10px;border-radius:8px 8px 0 0;font-size:10px;font-weight:700;color:var(--txt2);border-bottom:2px solid transparent;background:none;border:none;cursor:pointer;}
+.tab-btn.active{color:var(--acc);background:var(--bg);border-bottom:2px solid var(--acc);}
+.tab-btn svg{flex-shrink:0;}
+.progress-bar{height:8px;background:var(--bg4);border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s;}
+.circle-wrap{display:flex;justify-content:center;margin:4px 0;}
+.mood-btn{background:transparent;border:2px solid var(--bg4);border-radius:10px;padding:7px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;}
+.mood-btn.sel{border-color:var(--acc);}
+.act-btn{padding:5px 9px;border-radius:20px;font-size:11px;background:var(--bg3);color:var(--txt2);border:1px solid var(--bg4);cursor:pointer;}
+.act-btn.sel{background:var(--acc);color:#fff;border-color:var(--acc);}
+.scanner-overlay{position:fixed;inset:0;background:#000;z-index:1000;display:flex;flex-direction:column;}
+.scan-frame{width:260px;height:170px;position:relative;margin:auto;}
+.scan-corner{position:absolute;width:26px;height:26px;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#4ecdc4,transparent);animation:scanline 2s ease-in-out infinite;box-shadow:0 0 8px #4ecdc4;}
+.subtab-row{display:flex;gap:5px;flex-shrink:0;}
+.subtab{flex:1;padding:7px 4px;border-radius:8px;font-size:10px;font-weight:700;text-align:center;cursor:pointer;border:1px solid var(--bg4);background:var(--bg3);color:var(--txt2);}
+.subtab.active{background:var(--acc);color:#fff;border-color:var(--acc);}
+.entry-row{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;}
+.badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;background:var(--bg3);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;}
+.macro-card{background:var(--bg2);border:1px solid var(--bg4);border-radius:10px;padding:9px 6px;text-align:center;}
+.quick-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.quick-scroll::-webkit-scrollbar{display:none;}
+.quick-chip{flex-shrink:0;background:var(--bg3);border:1px solid var(--bg4);border-radius:8px;padding:6px 10px;cursor:pointer;}
+.err-box{background:#ff4d6d18;border:1px solid #ff4d6d44;border-radius:10px;padding:10px 14px;font-size:13px;color:#ff4d6d;}
+.ok-box{background:#4ecdc418;border:1px solid #4ecdc444;border-radius:10px;padding:10px 14px;font-size:13px;color:#4ecdc4;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="header">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 2px;">
+      <div style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#7c6af7,#f26b8a);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#fff;flex-shrink:0;">A</div>
+      <span style="font-weight:800;font-size:17px;">Vexa</span>
+      <span id="dateLabel" style="margin-left:auto;color:var(--txt2);font-size:12px;"></span>
+      <button onclick="openSettings()" style="padding:4px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--bg4);color:var(--txt2);font-size:13px;">⚙️</button>
+    </div>
+    <div id="tabs"></div>
+  </div>
+  <div id="pages"></div>
+</div>
+
+<!-- SCANNER -->
+<div class="scanner-overlay" id="scannerOverlay" style="display:none;">
+  <div style="position:absolute;top:0;left:0;right:0;padding:calc(16px + var(--st)) 16px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.8),transparent);display:flex;align-items:center;gap:10px;z-index:10;">
+    <button onclick="closeScanner()" style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;">✕</button>
+    <span style="color:#fff;font-weight:700;font-size:16px;" id="scanTitle">Barcode scannen</span>
+  </div>
+  <video id="scanVideo" style="width:100%;height:100%;object-fit:cover;" playsinline muted></video>
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+    <div class="scan-frame">
+      <div class="scan-corner" style="top:0;left:0;border-top:3px solid #4ecdc4;border-left:3px solid #4ecdc4;"></div>
+      <div class="scan-corner" style="top:0;right:0;border-top:3px solid #4ecdc4;border-right:3px solid #4ecdc4;"></div>
+      <div class="scan-corner" style="bottom:0;left:0;border-bottom:3px solid #4ecdc4;border-left:3px solid #4ecdc4;"></div>
+      <div class="scan-corner" style="bottom:0;right:0;border-bottom:3px solid #4ecdc4;border-right:3px solid #4ecdc4;"></div>
+      <div class="scan-line"></div>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(to top,rgba(0,0,0,.8),transparent);text-align:center;">
+    <span style="color:rgba(255,255,255,.7);font-size:13px;">Barcode im Rahmen positionieren</span>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:2000;display:none;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--bg2);border:1px solid var(--bg4);border-radius:20px;padding:24px;width:100%;max-width:360px;">
+    <div style="font-weight:800;font-size:18px;margin-bottom:6px;">⚙️ Einstellungen</div>
+    <div style="color:var(--txt2);font-size:13px;margin-bottom:6px;">Groq API Key – 100% kostenlos, keine Kreditkarte</div>
+    <div style="background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--txt2);line-height:1.7;">
+      1. <span style="color:#4ecdc4;">console.groq.com</span> öffnen<br/>
+      2. Kostenlosen Account erstellen<br/>
+      3. API Keys → Create API Key<br/>
+      4. Key hier einfügen (fängt mit <b style="color:#f0f0f8;">gsk_</b> an)
+    </div>
+    <input class="inp" type="password" id="keyInput" placeholder="gsk_..." style="margin-bottom:8px;"/>
+    <div id="keyTestMsg" style="font-size:13px;margin-bottom:8px;display:none;"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-p" onclick="saveKey()" style="flex:1;justify-content:center;" id="saveKeyBtn">Speichern & Testen</button>
+      <button class="btn btn-g" onclick="closeSettings()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+const LS={
+  get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}},
+  set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+};
+
+// ── DATE ─────────────────────────────────────────────────────────────────────
+document.getElementById('dateLabel').textContent=new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'short'});
+
+// ── MANIFEST ─────────────────────────────────────────────────────────────────
+try{const m={name:"Vexa Personal Assistant",short_name:"Vexa",start_url:"./",display:"standalone",background_color:"#0a0a0f",theme_color:"#7c6af7",orientation:"portrait",icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%230a0a0f'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%237c6af7'/%3E%3Cstop offset='1' stop-color='%23f26b8a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='256' cy='256' r='200' fill='url(%23g)'/%3E%3Ctext x='256' y='330' text-anchor='middle' font-family='Arial Black' font-weight='900' font-size='220' fill='white'%3EA%3C/text%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+const b=new Blob([JSON.stringify(m)],{type:'application/json'});
+const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch(e){}
+
+// ── GROQ API (kostenlos) ─────────────────────────────────────────────────────
+function getKey(){return LS.get('aura_key','');}
+function parseJSON(txt){
+  try{return JSON.parse(txt.trim());}catch{}
+  const s=txt.replace(/```json/gi,'').replace(/```/g,'').trim();
+  try{return JSON.parse(s);}catch{}
+  const om=s.match(/(\{[\s\S]*\})/);if(om)try{return JSON.parse(om[1]);}catch{}
+  const am=s.match(/(\[[\s\S]*\])/);if(am)try{return JSON.parse(am[1]);}catch{}
+  return null;
+}
+async function aiCall(prompt,wantJSON=false){
+  const key=getKey();
+  if(!key)return wantJSON?null:'⚠️ Kein API-Key. Bitte in ⚙️ Einstellungen eingeben.';
+  const sys=wantJSON
+    ?'Du bist Vexa. Antworte auf Deutsch. WICHTIG: Nur reines JSON, kein Markdown, kein Text drumherum.'
+    :'Du bist Vexa, ein hilfreicher persönlicher Assistent. Antworte auf Deutsch, kurz und freundlich.';
+  try{
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[{role:'system',content:sys},{role:'user',content:prompt}],
+        max_tokens:2000,
+        temperature:wantJSON?0.2:0.7,
+        response_format:wantJSON?{type:'json_object'}:undefined
+      })
+    });
+    const d=await r.json();
+    if(d.error)return wantJSON?null:'❌ '+d.error.message;
+    const txt=d.choices?.[0]?.message?.content||'';
+    return wantJSON?parseJSON(txt):txt;
+  }catch(e){return wantJSON?null:'❌ Verbindungsfehler: '+e.message;}
+}
+
+// ── OPEN FOOD FACTS ───────────────────────────────────────────────────────────
+async function lookupBarcode(code){
+  try{
+    const r=await fetch('https://world.openfoodfacts.org/api/v0/product/'+code+'.json');
+    const d=await r.json();
+    if(d.status!==1)return null;
+    const p=d.product;const n=p.nutriments||{};
+    return{name:p.product_name_de||p.product_name||'Unbekannt',brand:p.brands||'',
+      kcal:Math.round(n['energy-kcal_100g']||0),protein:Math.round((n.proteins_100g||0)*10)/10,
+      carbs:Math.round((n.carbohydrates_100g||0)*10)/10,fat:Math.round((n.fat_100g||0)*10)/10,
+      image:p.image_thumb_url||'',barcode:code};
+  }catch{return null;}
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────────────────
+function openSettings(){
+  document.getElementById('keyInput').value=getKey();
+  document.getElementById('keyTestMsg').style.display='none';
+  document.getElementById('settingsModal').style.display='flex';
+}
+function closeSettings(){document.getElementById('settingsModal').style.display='none';}
+async function saveKey(){
+  const k=document.getElementById('keyInput').value.trim();
+  if(!k)return;
+  LS.set('aura_key',k);
+  const btn=document.getElementById('saveKeyBtn');
+  const msg=document.getElementById('keyTestMsg');
+  btn.innerHTML='<span class="spin"></span> Teste…';
+  try{
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:'Say OK'}],max_tokens:5})
+    });
+    const d=await r.json();
+    if(d.error){msg.textContent='❌ '+d.error.message;msg.style.color='#ff4d6d';}
+    else if(d.choices){msg.textContent='✅ Verbindung erfolgreich!';msg.style.color='#4ecdc4';setTimeout(closeSettings,1200);}
+    else{msg.textContent='❌ Unbekannter Fehler';msg.style.color='#ff4d6d';}
+  }catch(e){msg.textContent='❌ '+e.message;msg.style.color='#ff4d6d';}
+  msg.style.display='block';
+  btn.textContent='Speichern & Testen';
+}
+
+// ── SCANNER ───────────────────────────────────────────────────────────────────
+let scannerActive=false,scanReader=null,scanCallback=null;
+function openScanner(title,cb){
+  scanCallback=cb;
+  document.getElementById('scanTitle').textContent=title||'Barcode scannen';
+  document.getElementById('scannerOverlay').style.display='flex';
+  startScanner();
+}
+function closeScanner(){
+  document.getElementById('scannerOverlay').style.display='none';
+  if(scanReader){try{scanReader.reset();}catch(e){}scanReader=null;}
+  const v=document.getElementById('scanVideo');
+  if(v.srcObject){v.srcObject.getTracks().forEach(t=>t.stop());v.srcObject=null;}
+}
+async function startScanner(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});
+    const video=document.getElementById('scanVideo');
+    video.srcObject=stream;
+    await video.play();
+    // Use BarcodeDetector if available (native, fast)
+    if('BarcodeDetector' in window){
+      const bd=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+      const detect=async()=>{
+        if(document.getElementById('scannerOverlay').style.display==='none')return;
+        try{
+          const codes=await bd.detect(video);
+          if(codes.length>0){const code=codes[0].rawValue;closeScanner();if(scanCallback)scanCallback(code);return;}
+        }catch(e){}
+        requestAnimationFrame(detect);
+      };
+      requestAnimationFrame(detect);
+    } else {
+      // Fallback: ZXing from CDN
+      const s=document.createElement('script');
+      s.src='https://unpkg.com/@zxing/browser@0.1.4/umd/index.min.js';
+      s.onload=()=>{
+        try{
+          const reader=new ZXingBrowser.BrowserMultiFormatReader();
+          scanReader=reader;
+          reader.decodeFromVideoElement(video,(result,err)=>{
+            if(result){const code=result.getText();closeScanner();if(scanCallback)scanCallback(code);}
+          });
+        }catch(e){}
+      };
+      document.head.appendChild(s);
+    }
+  }catch(e){
+    document.getElementById('scannerOverlay').style.display='none';
+    alert('Kamera-Fehler: '+e.message);
+  }
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+const TABS=[
+  {id:'home',label:'Home',icon:'🏠'},
+  {id:'gym',label:'Gym',icon:'💪'},
+  {id:'cal',label:'Kalorien',icon:'🔥'},
+  {id:'tasks',label:'Tasks',icon:'✅'},
+  {id:'journal',label:'Journal',icon:'📔'},
+  {id:'study',label:'Lernen',icon:'🎓'},
+  {id:'notes',label:'Notizen',icon:'📝'},
+];
+let activeTab='home';
+function switchTab(id){
+  activeTab=id;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+id));
+  // Re-render dynamic pages
+  if(id==='home')renderHome();
+  if(id==='gym')renderGym();
+  if(id==='cal')renderCal();
+  if(id==='tasks')renderTasks();
+  if(id==='journal')renderJournal();
+  if(id==='study')renderStudy();
+  if(id==='notes')renderNotes();
+}
+// Build tab bar and pages
+const tabBar=document.getElementById('tabs');
+const pagesEl=document.getElementById('pages');
+pagesEl.style.cssText='flex:1;overflow:hidden;display:flex;flex-direction:column;';
+TABS.forEach(t=>{
+  const btn=document.createElement('button');
+  btn.className='tab-btn'+(t.id==='home'?' active':'');
+  btn.dataset.tab=t.id;
+    btn.innerHTML='<span style="font-size:16px;">'+t.icon+'</span><span>'+t.label+'</span>';
+  btn.onclick=()=>switchTab(t.id);
+  tabBar.appendChild(btn);
+  const page=document.createElement('div');
+  page.className='page'+(t.id==='home'?' active':'');
+  page.id='page-'+t.id;
+  pagesEl.appendChild(page);
+});
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function el(tag,attrs,children){
+  const e=document.createElement(tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='style'&&typeof v==='object')Object.assign(e.style,v);
+    else if(k==='class')e.className=v;
+    else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),v);
+    else e.setAttribute(k,v);
+  });
+  if(children){
+    (Array.isArray(children)?children:[children]).forEach(c=>{
+      if(c==null)return;
+      e.appendChild(typeof c==='string'?document.createTextNode(c):c);
+    });
+  }
+  return e;
+}
+function setHTML(id,html){const e=document.getElementById(id);if(e)e.innerHTML=html;}
+function div(style,children){return el('div',{style},children);}
+
+// ════════════════════════════════════════════════════════════════════════════
+// HOME
+// ════════════════════════════════════════════════════════════════════════════
+function renderHome(){
+  const pg=document.getElementById('page-home');
+  const steps=LS.get('gym_steps',0),goal=LS.get('gym_goal',10000);
+  const calGoal=LS.get('cal_goal',2000);
+  const cal=LS.get('cal_today',[]).reduce((s,c)=>s+(c.kcal||0),0);
+  const allTasks=LS.get('tasks',[]);
+  const openCount=allTasks.filter(t=>!t.done).length;
+  const now2=Date.now();
+  const pc2={high:'#f26b8a',normal:'#7c6af7',low:'#9898b8'};
+  const upcoming=allTasks
+    .filter(t=>!t.done&&t.date&&t.time)
+    .map(t=>({...t,due:new Date(t.date+'T'+t.time).getTime()}))
+    .filter(t=>t.due>now2)
+    .sort((a,b)=>a.due-b.due)
+    .slice(0,3);
+  const h=new Date().getHours();
+  const greet=h<12?'Guten Morgen ☀️':h<17?'Guten Tag 👋':'Guten Abend 🌙';
+  pg.innerHTML=`
+  <h2 class="anim">${greet}</h2>
+  <div class="grid2 anim">
+    <div class="card"><div style="color:var(--txt2);font-size:11px;margin-bottom:4px;">Schritte</div>
+      <div style="font-weight:800;font-size:15px;color:#4ecdc4;">${steps.toLocaleString('de')} / ${goal.toLocaleString('de')}</div>
+      <div class="progress-bar" style="margin-top:6px;"><div class="progress-fill" style="width:${Math.min(100,(steps/goal)*100)}%;background:#4ecdc4;"></div></div></div>
+    <div class="card"><div style="color:var(--txt2);font-size:11px;margin-bottom:4px;">Kalorien</div>
+      <div style="font-weight:800;font-size:15px;color:#f26b8a;">${cal} / ${calGoal}</div>
+      <div class="progress-bar" style="margin-top:6px;"><div class="progress-fill" style="width:${Math.min(100,(cal/calGoal)*100)}%;background:#f26b8a;"></div></div></div>
+    <div class="card"><div style="color:var(--txt2);font-size:11px;margin-bottom:4px;">Offene Tasks</div>
+      <div style="font-weight:800;font-size:18px;color:#ffd166;">${openCount}</div></div>
+    <div class="card"><div style="color:var(--txt2);font-size:11px;margin-bottom:4px;">Datum</div>
+      <div style="font-weight:700;font-size:13px;color:#7c6af7;">${new Date().toLocaleDateString('de-DE')}</div></div>
+  </div>
+  <div class="card anim" id="weatherCard" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:3px;" id="weatherLocation">📍 Standort wird geladen…</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-top:2px;">
+          <div><span style="font-size:11px;color:var(--txt2);">Max. Temp.</span><br/><span style="font-weight:800;font-size:18px;color:#f26b8a;" id="weatherTemp">–</span></div>
+          <div><span style="font-size:11px;color:var(--txt2);">UV-Index</span><br/><span style="font-weight:800;font-size:18px;" id="weatherUV">–</span></div>
+          <div><span style="font-size:11px;color:var(--txt2);">Wetter</span><br/><span style="font-size:22px;" id="weatherIcon">–</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  ${(()=>{
+    if(!upcoming.length) return '';
+    return '<div class="card anim"><div style="font-weight:800;font-size:14px;margin-bottom:8px;">⏰ Nächste Tasks</div>'+
+      upcoming.map(t=>{
+        const d=new Date(t.due);
+        const diff=t.due-now2;
+        const mins=Math.floor(diff/60000);
+        const hrs=Math.floor(mins/60);
+        const days=Math.floor(hrs/24);
+        const rel=days>0?'in '+days+'d '+(hrs%24)+'h':hrs>0?'in '+hrs+'h '+(mins%60)+'min':'in '+mins+' Min.';
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bg4);">'+
+          '<div style="width:3px;height:36px;border-radius:2px;background:'+(pc2[t.prio]||pc2.normal)+';flex-shrink:0;"></div>'+
+          '<div style="flex:1;"><div style="font-weight:700;font-size:13px;">'+t.title+'</div>'+
+          '<div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+
+          d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+
+          ' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'</div></div>'+
+          '<div style="font-size:12px;color:#ffd166;font-weight:800;">'+rel+'</div></div>';
+      }).join('')+'</div>';
+  })()}
+  <div class="card anim">
+    <div style="font-weight:800;color:var(--acc);margin-bottom:8px;">🤖 Vexa Assistent</div>
+    <div id="chatMsg" style="background:var(--bg3);border-radius:8px;padding:10px;font-size:13px;margin-bottom:8px;line-height:1.6;display:none;white-space:pre-wrap;"></div>
+    <div style="display:flex;gap:8px;">
+      <input class="inp" id="chatInp" placeholder="Frag mich etwas…" style="flex:1;" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button class="btn btn-p" onclick="sendChat()" id="chatBtn" style="padding:10px 12px;">➤</button>
+    </div>
+  </div>`;
+  setTimeout(loadWeather,100);
+}
+function renderUpcomingTasks_UNUSED(){
+  const card=document.getElementById('upcomingTasksCard');
+  if(!card)return;
+  const now=Date.now();
+  const pc={high:'#f26b8a',normal:'#7c6af7',low:'#9898b8'};
+  const upcoming=LS.get('tasks',[])
+    .filter(t=>!t.done&&t.date&&t.time)
+    .map(t=>({...t,due:new Date(t.date+'T'+t.time).getTime()}))
+    .filter(t=>t.due>now)
+    .sort((a,b)=>a.due-b.due)
+    .slice(0,3);
+  if(!upcoming.length){card.style.display='none';return;}
+  card.style.display='block';
+  card.innerHTML='<div style="font-weight:800;font-size:14px;margin-bottom:8px;">⏰ Nächste Tasks</div>'+
+    upcoming.map(t=>{
+      const d=new Date(t.due);
+      const diff=t.due-now;
+      const mins=Math.floor(diff/60000);
+      const hrs=Math.floor(mins/60);
+      const days=Math.floor(hrs/24);
+      const rel=days>0?'in '+days+'d '+(hrs%24)+'h':hrs>0?'in '+hrs+'h '+(mins%60)+'min':'in '+mins+' Min.';
+      return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bg4);">'+
+        '<div style="width:3px;height:38px;border-radius:2px;background:'+(pc[t.prio]||pc.normal)+';flex-shrink:0;"></div>'+
+        '<div style="flex:1;"><div style="font-weight:700;font-size:13px;">'+t.title+'</div>'+
+        '<div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+
+        d.toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})+
+        ' · '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})+'</div></div>'+
+        '<div style="font-size:12px;color:#ffd166;font-weight:800;text-align:right;">'+rel+'</div></div>';
+    }).join('');
+}
+function loadWeather(){
+  const card=document.getElementById('weatherCard');
+  if(!card)return;
+  if(!navigator.geolocation){return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    try{
+      const lat=pos.coords.latitude.toFixed(4);
+      const lon=pos.coords.longitude.toFixed(4);
+      // Reverse geocode for city name
+      const geoR=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+      const geoD=await geoR.json();
+      const city=geoD.address?.city||geoD.address?.town||geoD.address?.village||geoD.address?.county||'Dein Standort';
+      // Get weather from Open-Meteo
+      const wR=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,uv_index_max,weathercode&timezone=auto&forecast_days=1`);
+      const wD=await wR.json();
+      const maxTemp=wD.daily?.temperature_2m_max?.[0];
+      const uvMax=wD.daily?.uv_index_max?.[0];
+      const wCode=wD.daily?.weathercode?.[0];
+      // Weather icon from code
+      const wIcon=wCode<=1?'☀️':wCode<=3?'⛅':wCode<=48?'🌫️':wCode<=67?'🌧️':wCode<=77?'❄️':wCode<=82?'🌦️':wCode<=99?'⛈️':'🌡️';
+      // UV color
+      const uvColor=uvMax<=2?'#4ecdc4':uvMax<=5?'#ffd166':uvMax<=7?'#f26b8a':'#ff4d6d';
+      const locEl=document.getElementById('weatherLocation');
+      const tempEl=document.getElementById('weatherTemp');
+      const uvEl=document.getElementById('weatherUV');
+      const iconEl=document.getElementById('weatherIcon');
+      if(locEl)locEl.textContent='📍 '+city;
+      if(tempEl)tempEl.textContent=maxTemp!==undefined?Math.round(maxTemp)+'°C':'–';
+      if(uvEl){uvEl.textContent=uvMax!==undefined?uvMax.toFixed(1):'–';uvEl.style.color=uvColor;}
+      if(iconEl)iconEl.textContent=wIcon;
+      if(card)card.style.display='block';
+    }catch(e){console.log('Weather error:',e);}
+  },()=>{});
+}
+
+async function sendChat(){
+  const inp=document.getElementById('chatInp');
+  const msg=document.getElementById('chatMsg');
+  const btn=document.getElementById('chatBtn');
+  if(!inp||!inp.value.trim())return;
+  const q=inp.value;inp.value='';
+  msg.style.display='block';msg.textContent='⏳ …';
+  btn.innerHTML='<span class="spin"></span>';
+  const r=await aiCall(q);
+  msg.textContent=r;
+  btn.textContent='➤';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// GYM
+// ════════════════════════════════════════════════════════════════════════════
+let gymView='main';
+let gymSelPlan=null;
+
+function renderGym(){
+  const steps=LS.get('gym_steps',0);
+  const goal=LS.get('gym_goal',10000);
+  const pct=Math.min(100,(steps/goal)*100);
+  const C=2*Math.PI*54;
+  const pg=document.getElementById('page-gym');
+  if(gymView==='plans'){renderGymPlans();return;}
+  if(gymView==='planDetail'){renderGymPlanDetail();return;}
+  if(gymView==='newPlan'){renderGymNewPlan();return;}
+  const wos=LS.get('gym_wos',[]);
+  pg.innerHTML=`
+  <div style="display:flex;align-items:center;justify-content:space-between;" class="anim">
+    <h2>💪 Gym Tracker</h2>
+    <button class="btn btn-p" style="padding:7px 13px;font-size:12px;" onclick="gymView='plans';renderGym()">📋 Pläne</button>
+  </div>
+  <div class="card anim" style="text-align:center;">
+    <svg width="128" height="128" style="display:block;margin:0 auto;">
+      <circle cx="64" cy="64" r="54" fill="none" stroke="var(--bg4)" stroke-width="9"/>
+      <circle cx="64" cy="64" r="54" fill="none" stroke="#4ecdc4" stroke-width="9"
+        stroke-dasharray="${C}" stroke-dashoffset="${C-(pct/100)*C}"
+        stroke-linecap="round" transform="rotate(-90 64 64)" style="transition:stroke-dashoffset .6s;"/>
+      <text x="64" y="58" text-anchor="middle" fill="#f0f0f8" font-size="19" font-weight="800" font-family="sans-serif">${steps.toLocaleString('de')}</text>
+      <text x="64" y="74" text-anchor="middle" fill="#9898b8" font-size="10" font-family="sans-serif">Schritte</text>
+      <text x="64" y="88" text-anchor="middle" fill="#4ecdc4" font-size="10" font-family="sans-serif">Ziel: ${goal.toLocaleString('de')}</text>
+    </svg>
+    <div style="color:#ffd166;font-weight:800;font-size:13px;">${Math.round(pct)}% erreicht</div>
+    <div style="display:flex;gap:7px;margin-top:10px;">
+      <input class="inp" type="number" id="stepsInp" placeholder="Schritte hinzufügen…" style="flex:1;"/>
+      <button class="btn btn-p" style="padding:9px 12px;" onclick="addSteps()">+</button>
+    </div>
+    <div style="display:flex;gap:5px;margin-top:7px;justify-content:center;flex-wrap:wrap;">
+      ${[500,1000,2500,5000].map(n=>'<button class="btn btn-g" style="font-size:11px;padding:5px 9px;" onclick="addStepsN('+n+')">+'+n.toLocaleString('de')+'</button>').join('')}
+      <button class="btn btn-d" style="font-size:11px;padding:5px 9px;" onclick="resetSteps()">Reset</button>
+    </div>
+    <div style="display:flex;gap:7px;margin-top:10px;align-items:center;">
+      <span style="color:var(--txt2);font-size:12px;">Ziel:</span>
+      <input class="inp" type="number" id="goalInp" placeholder="${goal}" style="flex:1;max-width:120px;"/>
+      <button class="btn btn-p" style="padding:7px 12px;font-size:12px;" onclick="saveGoal()">Ändern</button>
+    </div>
+  </div>
+  <div class="card anim">
+    <div style="font-weight:800;margin-bottom:8px;font-size:14px;">Übung eintragen</div>
+    <input class="inp" id="woName" placeholder="Übungsname" style="margin-bottom:7px;"/>
+    <input class="inp" type="number" id="woWeight" placeholder="Gewicht (kg)" style="margin-bottom:7px;"/>
+    <div style="font-weight:700;font-size:12px;color:var(--txt2);margin-bottom:5px;">Sätze & Wiederholungen:</div>
+    <div id="woSetsWrap" style="display:flex;flex-direction:column;gap:5px;"></div>
+    <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:6px;font-size:12px;" onclick="addSetRow()">+ Satz</button>
+    <button class="btn btn-p" style="width:100%;justify-content:center;margin-top:8px;" onclick="saveWo()">💾 Speichern</button>
+  </div>
+  ${wos.slice(0,8).map(w=>'<div class="card entry-row anim" style="padding:10px 13px;"><div style="flex:1;"><div style="font-weight:700;font-size:13px;">'+w.name+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+(w.weight?w.weight+'kg · ':'')+(w.dow?w.dow+', ':'')+w.date+'</div>'+(w.sets&&w.sets.length?'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;">'+w.sets.map((s,i)=>'<span style="background:var(--bg3);border:1px solid var(--bg4);border-radius:5px;padding:2px 7px;font-size:11px;">S'+(i+1)+': '+s.reps+'×'+(s.kg?s.kg+'kg':'–')+'</span>').join('')+'</div>':'')+'</div><button style="color:#f26b8a;" onclick="deleteWo('+w.id+')">🗑</button></div>').join('')}`;
+  setTimeout(()=>{const w=document.getElementById('woSetsWrap');if(w&&w.children.length===0)addSetRow();},50);
+}
+
+function addSetRow(){
+  const wrap=document.getElementById('woSetsWrap');if(!wrap)return;
+  const idx=wrap.children.length+1;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:5px;align-items:center;';
+  row.innerHTML='<span style="color:var(--txt2);font-size:11px;min-width:42px;">Satz '+idx+'</span><input class="inp set-reps" type="number" placeholder="Wdh." style="flex:1;padding:7px;"/><input class="inp set-kg" type="number" placeholder="kg" style="flex:1;padding:7px;"/><button style="color:#f26b8a;font-size:15px;padding:3px;" onclick="this.parentElement.remove()">✕</button>';
+  wrap.appendChild(row);
+}
+function saveWo(){
+  const name=(document.getElementById('woName')||{}).value||'';if(!name.trim())return;
+  const weight=(document.getElementById('woWeight')||{}).value||'';
+  const rows=document.querySelectorAll('#woSetsWrap > div');
+  const sets=Array.from(rows).map(r=>({reps:(r.querySelector('.set-reps')||{}).value||'',kg:(r.querySelector('.set-kg')||{}).value||''})).filter(s=>s.reps);
+  const now=new Date();
+  const dow=now.toLocaleDateString('de-DE',{weekday:'long'});
+  const date=now.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+  const wos=LS.get('gym_wos',[]);
+  wos.unshift({id:Date.now(),name,weight,sets,date,dow});
+  LS.set('gym_wos',wos);renderGym();
+}
+function addSteps(){const v=parseInt(document.getElementById('stepsInp').value);if(v>0){LS.set('gym_steps',LS.get('gym_steps',0)+v);renderGym();}}
+function addStepsN(n){LS.set('gym_steps',LS.get('gym_steps',0)+n);renderGym();}
+function resetSteps(){LS.set('gym_steps',0);renderGym();}
+function saveGoal(){const v=parseInt(document.getElementById('goalInp').value);if(v>0){LS.set('gym_goal',v);renderGym();}}
+function deleteWo(id){LS.set('gym_wos',LS.get('gym_wos',[]).filter(w=>w.id!==id));renderGym();}
+
+function renderGymPlans(){
+  const plans=LS.get('gym_plans',[]);
+  const pg=document.getElementById('page-gym');
+  pg.innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;" class="anim">
+    <button class="btn btn-g" style="padding:8px;" onclick="gymView='main';renderGym()">← Zurück</button>
+    <h2>📋 Trainingspläne</h2>
+  </div>
+  <button class="btn btn-p anim" style="width:100%;justify-content:center;" onclick="gymView='newPlan';renderGym()">+ Neuer Plan</button>
+  ${plans.length===0?'<div style="text-align:center;color:var(--txt2);padding:24px;font-size:14px;">Noch kein Plan. Erstelle deinen ersten!</div>':''}
+  ${plans.map(p=>'<div class="card anim"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div><div style="font-weight:800;font-size:15px;">'+p.name+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+p.exercises.length+' Übungen · '+p.created+'</div></div><button style="color:#f26b8a;" onclick="deletePlan('+p.id+')">🗑</button></div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">'+p.exercises.map(e=>'<span style="background:var(--bg3);border:1px solid var(--bg4);border-radius:6px;padding:3px 8px;font-size:11px;">'+e.name+'</span>').join('')+'</div><button class="btn btn-p" style="width:100%;justify-content:center;" onclick="startPlan('+p.id+')">▶ Training starten</button></div>').join('')}`;
+}
+function renderGymNewPlan(){
+  const pg=document.getElementById('page-gym');
+  pg.innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;" class="anim">
+    <button class="btn btn-g" style="padding:8px;" onclick="gymView='plans';renderGym()">← Zurück</button>
+    <h2>Neuer Plan</h2>
+  </div>
+  <div class="card anim" style="display:flex;flex-direction:column;gap:8px;">
+    <input class="inp" id="planName" placeholder="Plan-Name (z.B. Push Day, Beintraining…)"/>
+    <div style="font-weight:700;font-size:13px;color:var(--txt2);">Übungen im Plan:</div>
+    <div id="planExWrap" style="display:flex;flex-direction:column;gap:6px;"></div>
+    <button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="addPlanEx()">+ Übung</button>
+    <button class="btn btn-p" style="justify-content:center;" onclick="savePlan()">Plan speichern</button>
+  </div>`;
+  setTimeout(addPlanEx,50);
+}
+function addPlanEx(){
+  const wrap=document.getElementById('planExWrap');if(!wrap)return;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:6px;align-items:center;';
+  row.innerHTML='<input class="inp plan-ex-name" placeholder="Übungsname" style="flex:1;"/><button style="color:#f26b8a;font-size:16px;padding:4px;" onclick="this.parentElement.remove()">✕</button>';
+  wrap.appendChild(row);
+}
+function savePlan(){
+  const name=(document.getElementById('planName')||{}).value||'';
+  if(!name.trim()){alert('Bitte einen Plan-Namen eingeben.');return;}
+  const exInputs=document.querySelectorAll('.plan-ex-name');
+  const exercises=Array.from(exInputs).map(i=>({name:i.value.trim()})).filter(e=>e.name);
+  if(!exercises.length){alert('Bitte mindestens eine Übung hinzufügen.');return;}
+  const plans=LS.get('gym_plans',[]);
+  plans.unshift({id:Date.now(),name,exercises,created:new Date().toLocaleDateString('de-DE'),log:[]});
+  LS.set('gym_plans',plans);gymView='plans';renderGym();
+}
+function deletePlan(id){LS.set('gym_plans',LS.get('gym_plans',[]).filter(p=>p.id!==id));renderGym();}
+function startPlan(id){gymSelPlan=LS.get('gym_plans',[]).find(p=>p.id===id);gymView='planDetail';renderGym();}
+function renderGymPlanDetail(){
+  if(!gymSelPlan){gymView='plans';renderGym();return;}
+  const now=new Date();
+  const dow=now.toLocaleDateString('de-DE',{weekday:'long'});
+  const date=now.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+  const pg=document.getElementById('page-gym');
+
+  // Find last session entries for this plan
+  const allWos=LS.get('gym_wos',[]);
+  const planWos=allWos.filter(w=>w.plan===gymSelPlan.name);
+  // Get the most recent session date
+  const lastDate=planWos.length?planWos[0].date:null;
+  // Group last session by exercise name
+  const lastSession={};
+  if(lastDate){
+    planWos.filter(w=>w.date===lastDate&&w.dow===planWos[0].dow).forEach(w=>{
+      // strip plan name suffix e.g. "Bankdrücken (Push Day)" → "Bankdrücken"
+      const exName=w.name.replace(' ('+gymSelPlan.name+')','');
+      lastSession[exName]=w;
+    });
+  }
+
+  pg.innerHTML=`
+  <div style="display:flex;align-items:center;gap:8px;" class="anim">
+    <button class="btn btn-g" style="padding:8px;" onclick="gymView='plans';renderGym()">← Zurück</button>
+    <div><h2 style="font-size:17px;">${gymSelPlan.name}</h2>
+    <div style="font-size:12px;color:#ffd166;margin-top:1px;">${dow}, ${date}</div></div>
+  </div>
+  ${lastDate?('<div class="card anim" style="border-left:3px solid #7c6af7;padding:10px 14px;"><div style="font-size:11px;color:var(--txt2);margin-bottom:2px;">Letztes Training mit diesem Plan:</div><div style="font-weight:700;font-size:13px;color:#7c6af7;">'+planWos[0].dow+', '+lastDate+'</div></div>'):''}
+  ${gymSelPlan.exercises.map((ex,ei)=>{
+    const last=lastSession[ex.name];
+    return '<div class="card anim"><div style="font-weight:800;font-size:15px;margin-bottom:6px;color:#4ecdc4;">'+ex.name+'</div>'+(last?'<div style="background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;"><div style="font-size:11px;color:var(--txt2);margin-bottom:4px;">📊 Letztes Mal ('+last.date+'):</div>'+(last.weight?'<div style="font-size:12px;color:#ffd166;margin-bottom:3px;">Gewicht: '+last.weight+'kg</div>':'')+'<div style="display:flex;gap:4px;flex-wrap:wrap;">'+(last.sets||[]).map((s,i)=>'<span style="background:var(--bg4);border-radius:5px;padding:2px 7px;font-size:11px;color:#f0f0f8;">S'+(i+1)+': '+s.reps+'×'+(s.kg?s.kg+'kg':'–')+'</span>').join('')+'</div></div>':'')+'<input class="inp" type="number" id="pex-weight-'+ei+'" placeholder="Gewicht (kg)'+(last&&last.weight?' – zuletzt '+last.weight+'kg':'')+'" style="margin-bottom:7px;"/><div style="font-weight:700;font-size:12px;color:var(--txt2);margin-bottom:5px;">Heutige Sätze:</div><div id="pex-sets-'+ei+'" style="display:flex;flex-direction:column;gap:5px;"></div><button class="btn btn-g" style="width:100%;justify-content:center;margin-top:6px;font-size:12px;" onclick="addPlanSetRow('+ei+')">+ Satz</button></div>';}).join('')}
+  <button class="btn btn-p anim" style="width:100%;justify-content:center;padding:13px;font-size:15px;" onclick="savePlanSession()">💾 Training speichern</button>`;
+  setTimeout(()=>gymSelPlan.exercises.forEach((_,ei)=>addPlanSetRow(ei)),50);
+}
+function addPlanSetRow(ei){
+  const wrap=document.getElementById('pex-sets-'+ei);if(!wrap)return;
+  const idx=wrap.children.length+1;
+  const row=document.createElement('div');
+  row.style.cssText='display:flex;gap:5px;align-items:center;';
+  row.innerHTML='<span style="color:var(--txt2);font-size:11px;min-width:42px;">Satz '+idx+'</span><input class="inp pex-reps" type="number" placeholder="Wdh." style="flex:1;padding:7px;"/><input class="inp pex-kg" type="number" placeholder="kg" style="flex:1;padding:7px;"/><button style="color:#f26b8a;font-size:14px;padding:3px;" onclick="this.parentElement.remove()">✕</button>';
+  wrap.appendChild(row);
+}
+function savePlanSession(){
+  if(!gymSelPlan)return;
+  const now=new Date();
+  const dow=now.toLocaleDateString('de-DE',{weekday:'long'});
+  const date=now.toLocaleDateString('de-DE',{day:'numeric',month:'long',year:'numeric'});
+  const wos=LS.get('gym_wos',[]);
+  gymSelPlan.exercises.forEach((ex,ei)=>{
+    const weight=(document.getElementById('pex-weight-'+ei)||{}).value||'';
+    const rows=document.querySelectorAll('#pex-sets-'+ei+' > div');
+    const sets=Array.from(rows).map(r=>({reps:(r.querySelector('.pex-reps')||{}).value||'',kg:(r.querySelector('.pex-kg')||{}).value||''})).filter(s=>s.reps);
+    if(sets.length)wos.unshift({id:Date.now()+ei,name:ex.name+' ('+gymSelPlan.name+')',weight,sets,date,dow,plan:gymSelPlan.name});
+  });
+  LS.set('gym_wos',wos);gymView='main';renderGym();
+  alert('Training gespeichert!');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// CALORIES
+// ════════════════════════════════════════════════════════════════════════════
+let calSubTab='log';
+function renderCal(){
+  const entries=LS.get('cal_today',[]);
+  const calGoal=LS.get('cal_goal',2000);
+  const myProds=LS.get('my_products',[]);
+  let tot={kcal:0,protein:0,carbs:0,fat:0};
+  entries.forEach(e=>{tot.kcal+=e.kcal||0;tot.protein+=e.protein||0;tot.carbs+=e.carbs||0;tot.fat+=e.fat||0;});
+  const pct=Math.min(100,(tot.kcal/calGoal)*100);
+  const over=tot.kcal>calGoal;
+  const rem=calGoal-Math.round(tot.kcal);
+  const pg=document.getElementById('page-cal');
+  pg.innerHTML=`
+  <h2 class="anim">🔥 Kalorien Tracker</h2>
+  <div class="card anim">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div><span style="font-weight:800;font-size:22px;color:${over?'#f26b8a':'#f0f0f8'};">${Math.round(tot.kcal)}</span><span style="color:var(--txt2);font-size:14px;"> / ${calGoal} kcal</span></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="inp" type="number" id="calGoalInp" placeholder="Ziel" style="width:80px;padding:5px 8px;font-size:12px;" value="${calGoal}"/>
+        <button class="btn btn-p" style="padding:5px 10px;font-size:11px;" onclick="saveCalGoal()">✓</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${over?'#f26b8a':'linear-gradient(90deg,#7c6af7,#4ecdc4)'};"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txt2);margin-top:5px;">
+      <span>${Math.round(pct)}% des Ziels</span>
+      <span style="color:${over?'#f26b8a':'#4ecdc4'};font-weight:700;">${over?'+'+Math.abs(rem)+' kcal über Ziel':rem+' kcal übrig'}</span>
+    </div>
+  </div>
+  <div class="grid3 anim">
+    <div class="macro-card"><div style="color:#7c6af7;font-weight:800;font-size:14px;">${Math.round(tot.protein)}g</div><div style="color:var(--txt2);font-size:10px;margin-top:2px;">Protein</div></div>
+    <div class="macro-card"><div style="color:#ffd166;font-weight:800;font-size:14px;">${Math.round(tot.carbs)}g</div><div style="color:var(--txt2);font-size:10px;margin-top:2px;">Carbs</div></div>
+    <div class="macro-card"><div style="color:#4ecdc4;font-weight:800;font-size:14px;">${Math.round(tot.fat)}g</div><div style="color:var(--txt2);font-size:10px;margin-top:2px;">Fett</div></div>
+  </div>
+  <div class="subtab-row anim">
+    ${[['log','📋 Log'],['scan','📷 Scan'],['own','⭐ Eigene'],['suggest','💡 Tipps'],['meal','🍳 Mahlzeit']].map(([v,l])=>'<button class="subtab'+(calSubTab===v?' active':'')+"\" onclick=\"switchCalTab('"+v+"')\">"+l+'</button>').join('')}
+  </div>
+  <div id="calContent" class="anim"></div>`;
+  renderCalContent();
+}
+function switchCalTab(t){calSubTab=t;renderCal();}
+function saveCalGoal(){const v=parseInt(document.getElementById('calGoalInp').value);if(v>0){LS.set('cal_goal',v);renderCal();}}
+function renderCalContent(){
+  const entries=LS.get('cal_today',[]);
+  const myProds=LS.get('my_products',[]);
+  const el=document.getElementById('calContent');if(!el)return;
+  if(calSubTab==='log'){
+    let h='<div style="display:flex;gap:7px;">';
+    h+='<input class="inp" id="foodInp" placeholder="z.B. 200g Hähnchenbrust…" style="flex:1;" onkeydown="if(event.key===\'Enter\')addFoodByText()"/>';
+    h+='<button class="btn btn-p" id="foodBtn" style="padding:9px 12px;" onclick="addFoodByText()">+</button></div>';
+    h+='<div id="foodErr" style="display:none;" class="err-box"></div>';
+    if(myProds.length) h+='<div style="color:var(--txt2);font-size:11px;margin-bottom:3px;">⭐ Schnellzugriff:</div><div class="quick-scroll">'+myProds.map(p=>'<div class="quick-chip" onclick="addMyProd('+p.id+')"><div style="font-size:12px;font-weight:700;white-space:nowrap;">'+p.name+'</div><div style="font-size:10px;color:#ffd166;">'+p.kcal+' kcal</div></div>').join('')+'</div>';
+    h+=entries.map(e=>'<div class="card entry-row" style="padding:10px 12px;"><div><div style="font-weight:600;font-size:13px;">'+e.name+(e.source==='ki'?'<span class="badge" style="margin-left:5px;color:#7c6af7;">🤖</span>':'')+(e.source==='off'?'<span class="badge" style="margin-left:5px;color:#4ecdc4;">📷</span>':'')+(e.source==='own'?'<span class="badge" style="margin-left:5px;color:#ffd166;">⭐</span>':'')+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+e.kcal+'kcal · P:'+e.protein+'g · K:'+e.carbs+'g · F:'+e.fat+'g</div></div><button style="color:#f26b8a;" onclick="deleteEntry('+e.id+')">🗑</button></div>').join('');
+    if(entries.length===0) h+='<div style="text-align:center;color:var(--txt2);padding:20px;font-size:14px;">Noch keine Einträge heute.</div>';
+    el.innerHTML=h;
+  } else if(calSubTab==='scan'){
+    let h='<button class="btn btn-p" style="width:100%;justify-content:center;padding:14px;font-size:15px;border-radius:12px;" onclick="startCalScan()">📷 Barcode scannen</button>';
+    h+='<div id="scanStatus" style="display:none;text-align:center;padding:12px;color:var(--txt2);">⏳ Produkt wird gesucht…</div>';
+    h+='<div id="scanErr" style="display:none;" class="err-box"></div>';
+    h+='<div id="scanResult" style="display:none;"></div>';
+    h+='<div style="color:var(--txt2);font-size:12px;text-align:center;line-height:1.6;margin-top:6px;">Daten von <span style="color:#7c6af7;">Open Food Facts</span> · 3+ Mio. Produkte<br>Nicht gefunden? Im Tab <b style="color:#ffd166;">⭐ Eigene</b> anlegen</div>';
+    el.innerHTML=h;
+  } else if(calSubTab==='own'){
+    let h='<button class="btn btn-p" style="width:100%;justify-content:center;" onclick="toggleCustomForm()">+ Neues Produkt anlegen</button>';
+    h+='<div id="customForm" style="display:none;" class="card" style="flex-direction:column;gap:8px;">';
+    h+='<div style="font-weight:800;margin-bottom:8px;font-size:14px;">Neues Produkt</div>';
+    h+='<input class="inp" id="cpName" placeholder="Produktname *" style="margin-bottom:7px;"/>';
+    h+='<div class="grid2" style="gap:7px;margin-bottom:7px;"><input class="inp" type="number" id="cpKcal" placeholder="kcal / 100g *"/><input class="inp" type="number" id="cpProtein" placeholder="Protein (g)"/><input class="inp" type="number" id="cpCarbs" placeholder="Kohlenhydrate (g)"/><input class="inp" type="number" id="cpFat" placeholder="Fett (g)"/></div>';
+    h+='<div style="display:flex;gap:7px;margin-bottom:7px;"><input class="inp" id="cpBarcode" placeholder="Barcode (optional)" style="flex:1;"/><button class="btn btn-g" style="padding:9px 12px;" onclick="scanForCustom()">📷</button></div>';
+    h+='<div id="cpBarcodeOk" style="display:none;font-size:11px;color:#4ecdc4;margin-bottom:7px;"></div>';
+    h+='<div style="display:flex;gap:7px;"><button class="btn btn-p" style="flex:1;justify-content:center;" onclick="saveCustomProd()">Speichern</button><button class="btn btn-g" onclick="toggleCustomForm()">Abbrechen</button></div></div>';
+    if(myProds.length===0) h+='<div style="text-align:center;color:var(--txt2);padding:20px;font-size:14px;">Noch keine eigenen Produkte.</div>';
+    h+=myProds.map(p=>'<div class="card entry-row" style="padding:10px 12px;"><div style="flex:1;"><div style="font-weight:600;font-size:13px;">'+p.name+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+p.kcal+'kcal · P:'+p.protein+'g · K:'+p.carbs+'g · F:'+p.fat+'g / 100g'+(p.barcode?' · 📷 '+p.barcode:'')+'</div></div><div style="display:flex;gap:5px;"><button class="btn btn-p" style="padding:6px 10px;font-size:12px;" onclick="addMyProd('+p.id+')">+</button><button style="color:#f26b8a;padding:6px;" onclick="deleteMyProd('+p.id+')">🗑</button></div></div>').join('');
+    el.innerHTML=h;
+  } else if(calSubTab==='suggest'){
+    el.innerHTML='<div class="card"><button class="btn btn-p" id="sugBtn" style="width:100%;justify-content:center;" onclick="getSuggestion()">🔍 KI-Analyse & Vorschläge</button><div id="sugResult" style="margin-top:10px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div></div>';
+  } else if(calSubTab==='meal'){
+    el.innerHTML='<div class="card"><div style="font-weight:800;margin-bottom:8px;font-size:14px;">Mahlzeit aus Zutaten</div><textarea class="inp" id="ingredInp" placeholder="z.B. Eier, Tomaten, Käse, Nudeln…" rows="3" style="resize:none;margin-bottom:8px;"></textarea><button class="btn btn-p" id="mealBtn" style="width:100%;justify-content:center;" onclick="getMeal()">🍳 Mahlzeit vorschlagen</button><div id="mealResult" style="margin-top:10px;font-size:13px;line-height:1.7;white-space:pre-wrap;display:none;"></div></div>';
+  }
+}
+
+
+// ════════════════════════════════════════════════════════════════════════════
+// CALORIE FUNCTIONS
+// ════════════════════════════════════════════════════════════════════════════
+async function addFoodByText(){
+  const inp=document.getElementById('foodInp');
+  const btn=document.getElementById('foodBtn');
+  const err=document.getElementById('foodErr');
+  if(!inp||!inp.value.trim())return;
+  const food=inp.value.trim();
+  inp.value='';
+  if(btn)btn.innerHTML='<span class="spin"></span>';
+  if(err)err.style.display='none';
+  const d=await aiCall('Schätze Nährwerte für: "'+food+'". NUR JSON: {"kcal":200,"protein":15,"carbs":20,"fat":8,"name":"'+food+'"}',true);
+  if(d&&typeof d==='object'&&d.kcal!==undefined){
+    const entries=LS.get('cal_today',[]);
+    entries.unshift({id:Date.now(),name:d.name||food,kcal:Math.round(d.kcal||0),protein:Math.round((d.protein||0)*10)/10,carbs:Math.round((d.carbs||0)*10)/10,fat:Math.round((d.fat||0)*10)/10,source:'ki'});
+    LS.set('cal_today',entries);renderCal();
+  } else {
+    if(err){err.textContent=typeof d==='string'?'⚠️ '+d:'⚠️ KI nicht verfügbar. Nutze ⭐ Eigene Produkte oder 📷 Scan.';err.style.display='block';}
+    if(btn)btn.textContent='+';
+  }
+  if(btn)btn.textContent='+';
+}
+function deleteEntry(id){
+  LS.set('cal_today',LS.get('cal_today',[]).filter(e=>e.id!==id));
+  renderCal();
+}
+function addMyProd(id){
+  const p=LS.get('my_products',[]).find(x=>x.id===id);if(!p)return;
+  const entries=LS.get('cal_today',[]);
+  entries.unshift({id:Date.now(),name:p.name,kcal:p.kcal,protein:p.protein,carbs:p.carbs,fat:p.fat,source:'own'});
+  LS.set('cal_today',entries);renderCal();
+}
+function deleteMyProd(id){LS.set('my_products',LS.get('my_products',[]).filter(x=>x.id!==id));renderCal();}
+function toggleCustomForm(){
+  const f=document.getElementById('customForm');
+  if(f)f.style.display=f.style.display==='none'||f.style.display===''?'flex':'none';
+  if(f)f.style.flexDirection='column';
+  if(f)f.style.gap='8px';
+}
+function scanForCustom(){
+  openScanner('Barcode für Produkt',code=>{
+    const inp=document.getElementById('cpBarcode');
+    const ok=document.getElementById('cpBarcodeOk');
+    if(inp)inp.value=code;
+    if(ok){ok.textContent='✓ Barcode: '+code;ok.style.display='block';}
+  });
+}
+function saveCustomProd(){
+  const name=(document.getElementById('cpName')||{}).value||'';
+  const kcal=+(document.getElementById('cpKcal')||{}).value||0;
+  if(!name||!kcal){alert('Name und kcal sind Pflichtfelder!');return;}
+  const prods=LS.get('my_products',[]);
+  prods.unshift({id:Date.now(),name,kcal,
+    protein:+(document.getElementById('cpProtein')||{}).value||0,
+    carbs:+(document.getElementById('cpCarbs')||{}).value||0,
+    fat:+(document.getElementById('cpFat')||{}).value||0,
+    barcode:(document.getElementById('cpBarcode')||{}).value||''
+  });
+  LS.set('my_products',prods);renderCal();
+}
+function startCalScan(){
+  openScanner('Lebensmittel scannen',async code=>{
+    const st=document.getElementById('scanStatus');
+    const err=document.getElementById('scanErr');
+    const res=document.getElementById('scanResult');
+    if(st)st.style.display='block';
+    if(err)err.style.display='none';
+    if(res)res.style.display='none';
+    const own=LS.get('my_products',[]).find(p=>p.barcode===code);
+    if(own){if(st)st.style.display='none';showScanResult({...own,source:'own'});return;}
+    const prod=await lookupBarcode(code);
+    if(st)st.style.display='none';
+    if(prod){showScanResult({...prod,source:'off'});}
+    else{if(err){err.textContent='Produkt nicht gefunden ('+code+'). Im Tab ⭐ Eigene manuell anlegen.';err.style.display='block';}}
+  });
+}
+function showScanResult(prod){window._scanProd=prod;
+  const res=document.getElementById('scanResult');if(!res)return;
+  res.style.display='block';
+  res.innerHTML='<div class="card" style="border:1px solid var(--acc);">'+
+    '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">'+
+    (prod.image?'<img src="'+prod.image+'" style="width:50px;height:50px;object-fit:contain;border-radius:8px;background:#fff;" onerror="this.style.display=\'none\'"/>':'')+ 
+    '<div style="flex:1;"><div style="font-weight:800;font-size:14px;">'+prod.name+'</div>'+
+    (prod.brand?'<div style="color:var(--txt2);font-size:12px;">'+prod.brand+'</div>':'')+
+    '<div style="color:#4ecdc4;font-size:12px;margin-top:3px;">pro 100g: '+prod.kcal+'kcal · P:'+prod.protein+'g · K:'+prod.carbs+'g · F:'+prod.fat+'g</div>'+
+    '</div></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'+
+    '<span style="color:var(--txt2);font-size:13px;">Portion:</span>'+
+    '<input class="inp" type="number" id="portionInp" value="100" style="width:80px;text-align:center;"/>'+
+    '<span style="color:var(--txt2);font-size:13px;">g</span>'+
+    '<span id="portionKcal" style="margin-left:auto;color:#ffd166;font-weight:800;">'+prod.kcal+' kcal</span>'+
+    '</div>'+
+    '<div style="display:flex;gap:7px;">'+
+    '<button class="btn btn-p" style="flex:1;justify-content:center;" onclick="confirmScanProduct()">+ Hinzufügen</button>'+
+
+    '<button class="btn btn-g" onclick="document.getElementById(\'scanResult\').style.display=\'none\'">Abbrechen</button>'+
+    '</div></div>';
+  const pi=document.getElementById('portionInp');
+  if(pi)pi.oninput=()=>{const k=document.getElementById('portionKcal');if(k)k.textContent=Math.round(prod.kcal*(pi.value||100)/100)+' kcal';};
+}
+function confirmScanProduct(){const prod=window._scanProd;if(!prod)return;
+  const p=parseInt((document.getElementById('portionInp')||{}).value||100);
+  const f=p/100;
+  const entries=LS.get('cal_today',[]);
+  entries.unshift({id:Date.now(),name:prod.name+(prod.brand?' ('+prod.brand+')':'')+(p!==100?' – '+p+'g':''),
+    kcal:Math.round((prod.kcal||0)*f),protein:Math.round((prod.protein||0)*f*10)/10,
+    carbs:Math.round((prod.carbs||0)*f*10)/10,fat:Math.round((prod.fat||0)*f*10)/10,source:prod.source||'off'});
+  LS.set('cal_today',entries);calSubTab='log';renderCal();
+}
+async function getSuggestion(){
+  const btn=document.getElementById('sugBtn');
+  const res=document.getElementById('sugResult');
+  const tot={kcal:0,protein:0,carbs:0,fat:0};
+  LS.get('cal_today',[]).forEach(e=>{tot.kcal+=e.kcal||0;tot.protein+=e.protein||0;tot.carbs+=e.carbs||0;tot.fat+=e.fat||0;});
+  if(btn)btn.innerHTML='<span class="spin"></span> Analysiere…';
+  const r=await aiCall('Meine heutigen Werte: '+Math.round(tot.kcal)+'kcal, Protein:'+Math.round(tot.protein)+'g, Carbs:'+Math.round(tot.carbs)+'g, Fett:'+Math.round(tot.fat)+'g. Ziel: '+LS.get('cal_goal',2000)+'kcal. Kurze Verbesserungsvorschläge und 2-3 Essensvorschläge.');
+  if(res){res.textContent=r;res.style.display='block';}
+  if(btn)btn.textContent='🔍 Nochmal analysieren';
+}
+async function getMeal(){
+  const btn=document.getElementById('mealBtn');
+  const inp=document.getElementById('ingredInp');
+  const res=document.getElementById('mealResult');
+  if(!inp||!inp.value.trim())return;
+  if(btn)btn.innerHTML='<span class="spin"></span> Erstelle…';
+  const r=await aiCall('Zutaten: '+inp.value+'. Schlage 2-3 Mahlzeiten vor (auch mit typischen Haushaltszutaten). Für jede: Kalorien + kurzes Rezept.');
+  if(res){res.textContent=r;res.style.display='block';}
+  if(btn)btn.textContent='🍳 Nochmal vorschlagen';
+}
+function saveCalGoal(){
+  const v=parseInt((document.getElementById('calGoalInp')||{}).value||0);
+  if(v>0){LS.set('cal_goal',v);renderCal();}
+}
+function switchCalTab(t){calSubTab=t;renderCal();}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TASKS
+// ════════════════════════════════════════════════════════════════════════════
+let taskFilter='open',showTaskForm=false;
+function renderTasks(){
+  // Auto-delete completed tasks older than 24h
+  const now=Date.now();
+  const cleaned=LS.get('tasks',[]).filter(t=>{
+    if(!t.done)return true;
+    if(!t.completedAt)return true;
+    return (now-t.completedAt)<86400000;
+  });
+  LS.set('tasks',cleaned);
+  const tasks=cleaned;
+  const filtered=tasks.filter(t=>taskFilter==='all'?true:taskFilter==='open'?!t.done:t.done);
+  const pc={high:'#f26b8a',normal:'#7c6af7',low:'#9898b8'};
+  const pg=document.getElementById('page-tasks');
+  let h='<div style="display:flex;align-items:center;justify-content:space-between;" class="anim"><h2>✅ Tasks</h2><button class="btn btn-p" style="padding:7px 13px;font-size:12px;" onclick="toggleTaskForm()">+ Neu</button></div>';
+  if(showTaskForm){
+    h+='<div class="card anim" style="display:flex;flex-direction:column;gap:8px;">';
+    h+='<input class="inp" id="tTitle" placeholder="Aufgabe…"/>';
+    h+='<textarea class="inp" id="tDesc" placeholder="Beschreibung (optional)" rows="2" style="resize:none;"></textarea>';
+    h+='<div class="grid2" style="gap:7px;"><input class="inp" type="date" id="tDate"/><input class="inp" type="time" id="tTime"/></div>';
+    h+='<select class="inp" id="tPrio"><option value="low">Niedrig</option><option value="normal" selected>Normal</option><option value="high">Hoch</option></select>';
+    h+='<div style="display:flex;gap:7px;"><button class="btn btn-p" style="flex:1;justify-content:center;" onclick="saveTask()">Speichern</button><button class="btn btn-g" onclick="toggleTaskForm()">Abbrechen</button></div>';
+    h+='</div>';
+  }
+  h+='<div style="display:flex;gap:5px;" class="anim">';
+  h+=[['open','Offen'],['done','Erledigt'],['all','Alle']].map(([v,l])=>'<button class="subtab'+(taskFilter===v?' active':'')+'" onclick="setTaskFilter(\''+v+'\')">'+l+'</button>').join('');
+  h+='</div>';
+  if(filtered.length===0) h+='<div style="text-align:center;color:var(--txt2);padding:20px;font-size:14px;">Keine Tasks.</div>';
+  h+=filtered.map(t=>'<div class="card anim" style="display:flex;gap:9px;align-items:flex-start;padding:11px 12px;opacity:'+(t.done?.55:1)+';border-left:3px solid '+(pc[t.prio]||pc.normal)+';"><button onclick="toggleTask('+t.id+')" style="width:26px;height:26px;border-radius:6px;background:'+(t.done?'#4ecdc4':'var(--bg4)')+';display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:13px;">'+(t.done?'✓':'')+'</button><div style="flex:1;"><div style="font-weight:700;font-size:14px;'+(t.done?'text-decoration:line-through;':'')+'">'+ t.title+'</div>'+(t.desc?'<div style="font-size:12px;color:var(--txt2);margin-top:2px;">'+t.desc+'</div>':'')+(t.date||t.time?'<div style="font-size:11px;color:#ffd166;margin-top:3px;">🔔 '+(t.date||'')+' '+(t.time||'')+'</div>':'')+'</div><button style="color:#f26b8a;" onclick="deleteTask('+t.id+')">🗑</button></div>').join('');
+  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+  pg.innerHTML=h;
+}
+function toggleTaskForm(){showTaskForm=!showTaskForm;renderTasks();}
+function setTaskFilter(f){taskFilter=f;renderTasks();}
+function saveTask(){
+  const title=(document.getElementById('tTitle')||{}).value||'';
+  if(!title.trim())return;
+  const tasks=LS.get('tasks',[]);
+  tasks.unshift({id:Date.now(),title,desc:(document.getElementById('tDesc')||{}).value||'',date:(document.getElementById('tDate')||{}).value||'',time:(document.getElementById('tTime')||{}).value||'',prio:(document.getElementById('tPrio')||{}).value||'normal',done:false});
+  LS.set('tasks',tasks);showTaskForm=false;renderTasks();
+}
+function toggleTask(id){
+  const t=LS.get('tasks',[]).map(x=>x.id===id?{...x,done:!x.done,completedAt:!x.done?Date.now():null}:x);
+  LS.set('tasks',t);renderTasks();
+}
+function deleteTask(id){LS.set('tasks',LS.get('tasks',[]).filter(x=>x.id!==id));renderTasks();}
+setInterval(()=>{
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  LS.get('tasks',[]).filter(t=>!t.done&&t.date&&t.time).forEach(t=>{
+    const due=new Date(t.date+'T'+t.time).getTime();
+    const diff=due-Date.now();
+    if(diff>0&&diff<60000)new Notification('⏰ '+t.title,{body:t.desc||'Task fällig!'});
+  });
+},30000);
+
+// ════════════════════════════════════════════════════════════════════════════
+// JOURNAL
+// ════════════════════════════════════════════════════════════════════════════
+const MOODS=[{e:'😄',l:'Großartig',v:5,c:'#ffd166'},{e:'🙂',l:'Gut',v:4,c:'#4ecdc4'},{e:'😐',l:'Ok',v:3,c:'#7c6af7'},{e:'😕',l:'Schlecht',v:2,c:'#f26b8a'},{e:'😢',l:'Mies',v:1,c:'#ff4d6d'}];
+const ACTS2=['🏋️ Sport','🍎 Gesund','📚 Gelernt','😴 Geschlafen','👥 Freunde','💼 Arbeit','🎮 Gaming','🧘 Entspannt','🎵 Musik','🚶 Spaziergang'];
+let selMood=null,selActs=[],showJForm=false;
+function renderJournal(){
+  const entries=LS.get('journal',[]);
+  const pg=document.getElementById('page-journal');
+  let h='<div style="display:flex;align-items:center;justify-content:space-between;" class="anim"><h2>📔 Journal</h2><button class="btn btn-p" style="padding:7px 13px;font-size:12px;" onclick="toggleJForm()">+ Eintrag</button></div>';
+  if(showJForm){
+    h+='<div class="card anim" style="display:flex;flex-direction:column;gap:10px;">';
+    h+='<div style="font-weight:800;font-size:14px;">Wie fühlst du dich?</div>';
+    h+='<div style="display:flex;gap:6px;justify-content:space-around;">';
+    h+=MOODS.map(m=>'<button class="mood-btn'+(selMood&&selMood.v===m.v?' sel':'')+'" onclick="selMoodFn('+m.v+')" style="border-color:'+(selMood&&selMood.v===m.v?m.c:'var(--bg4)')+'"><span style="font-size:20px;">'+m.e+'</span><span style="font-size:10px;color:'+(selMood&&selMood.v===m.v?m.c:'var(--txt2)')+';">'+m.l+'</span></button>').join('');
+    h+='</div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    h+=ACTS2.map(a=>'<button class="act-btn'+(selActs.includes(a)?' sel':'')+'" onclick="toggleAct(\''+a+'\')">'+a+'</button>').join('');
+    h+='</div>';
+    h+='<textarea class="inp" id="jNote" placeholder="Notiz…" rows="2" style="resize:none;"></textarea>';
+    h+='<div style="display:flex;gap:7px;"><button class="btn btn-p" style="flex:1;justify-content:center;" onclick="saveJEntry()" '+(selMood?'':'disabled')+'>Speichern</button><button class="btn btn-g" onclick="toggleJForm()">Abbrechen</button></div>';
+    h+='</div>';
+  }
+  if(entries.length>=2){
+    h+='<div class="card anim"><button class="btn btn-g" id="reflBtn" style="width:100%;justify-content:center;" onclick="getReflection()">🧠 KI Reflexion</button><div id="reflResult" style="display:none;margin-top:10px;font-size:13px;line-height:1.7;white-space:pre-wrap;"></div></div>';
+  }
+  if(entries.length===0) h+='<div style="text-align:center;color:var(--txt2);padding:20px;font-size:14px;">Noch kein Eintrag.</div>';
+  h+=entries.map(e=>{
+    const m=MOODS.find(x=>x.v===e.mood.v)||e.mood;
+    return '<div class="card anim" style="border-left:3px solid '+m.c+';"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:22px;">'+m.e+'</span><div><div style="font-weight:800;color:'+m.c+';font-size:13px;">'+m.l+'</div><div style="font-size:11px;color:var(--txt2);">'+e.date+'</div></div></div><button style="color:#f26b8a;" onclick="deleteJEntry('+e.id+')">🗑</button></div>'+(e.acts.length?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px;">'+e.acts.map(a=>'<span class="badge">'+a+'</span>').join('')+'</div>':'')+(e.note?'<div style="font-size:12px;color:var(--txt2);font-style:italic;">'+e.note+'</div>':'')+'</div>';
+  }).join('');
+  pg.innerHTML=h;
+}
+function toggleJForm(){showJForm=!showJForm;if(!showJForm){selMood=null;selActs=[];}renderJournal();}
+function selMoodFn(v){selMood=MOODS.find(m=>m.v===v);renderJournal();}
+function toggleAct(a){selActs=selActs.includes(a)?selActs.filter(x=>x!==a):[...selActs,a];renderJournal();}
+function saveJEntry(){
+  if(!selMood)return;
+  const entries=LS.get('journal',[]);
+  entries.unshift({id:Date.now(),mood:selMood,acts:[...selActs],note:(document.getElementById('jNote')||{}).value||'',date:new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long'})});
+  LS.set('journal',entries);selMood=null;selActs=[];showJForm=false;renderJournal();
+}
+function deleteJEntry(id){LS.set('journal',LS.get('journal',[]).filter(e=>e.id!==id));renderJournal();}
+async function getReflection(){
+  const btn=document.getElementById('reflBtn');
+  const res=document.getElementById('reflResult');
+  if(btn)btn.innerHTML='<span class="spin"></span> Analysiere…';
+  const last=LS.get('journal',[]).slice(0,5).map(e=>e.date+': '+e.mood.l+' ('+e.mood.v+'/5), '+e.acts.join(', ')+', Notiz: '+e.note).join(String.fromCharCode(10));
+  const r=await aiCall('Meine letzten Journaleinträge:'+String.fromCharCode(10)+last+String.fromCharCode(10,10)+'Kurze einfühlsame Reflexion + 2 konkrete Tipps.');
+  if(res){res.textContent=r;res.style.display='block';}
+  if(btn)btn.textContent='🧠 Nochmal reflektieren';
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STUDY
+// ════════════════════════════════════════════════════════════════════════════
+let studyView='list',studySel=null,studyPlan='',studyQuiz=[],studyQI=0;
+function renderStudy(){
+  const subs=LS.get('study_subs',[]);
+  const pg=document.getElementById('page-study');
+  if(studyView==='list'){
+    let h='<div style="display:flex;align-items:center;justify-content:space-between;" class="anim"><h2>🎓 Lernen</h2><button class="btn btn-p" style="padding:7px 13px;font-size:12px;" onclick="studyView=\'upload\';renderStudy()">+ Stoff</button></div>';
+    if(subs.length===0) h+='<div class="card" style="text-align:center;padding:28px;"><div style="font-size:44px;margin-bottom:10px;">📚</div><div style="font-weight:800;margin-bottom:6px;">Noch kein Lernstoff</div><div style="color:var(--txt2);font-size:13px;">Füge Lernstoff hinzu.</div></div>';
+    h+=subs.map(s=>'<div class="card anim"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;"><div><div style="font-weight:800;">'+s.name+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px;">'+s.created+' · '+s.content.length+' Zeichen</div></div><button style="color:#f26b8a;" onclick="deleteSub('+s.id+')">🗑</button></div><div style="display:flex;gap:7px;"><button class="btn btn-g" style="flex:1;justify-content:center;font-size:12px;" onclick="openPlan('+s.id+')">📅 Lernplan</button><button class="btn btn-p" style="flex:1;justify-content:center;font-size:12px;" onclick="startQuiz('+s.id+')">🧠 Quiz</button></div></div>').join('');
+    pg.innerHTML=h; return;
+  }
+  if(studyView==='upload'){
+    pg.innerHTML='<div style="display:flex;align-items:center;gap:8px;" class="anim"><button class="btn btn-g" style="padding:8px;" onclick="studyView=\'list\';renderStudy()">← Zurück</button><h2>Stoff hinzufügen</h2></div><div class="card anim" style="display:flex;flex-direction:column;gap:8px;"><input class="inp" id="subName" placeholder="Fachname"/><textarea class="inp" id="subContent" placeholder="Lernstoff hier eingeben…" rows="8" style="resize:none;"></textarea><div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">Datei hochladen:</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;"><button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'fileInpTxt\').click()">📄 Text</button><button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'fileInpPdf\').click()">📕 PDF</button><button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'fileInpImg\').click()">📷 Foto</button><button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'fileInpDoc\').click()">📝 Word</button><button class="btn btn-g" style="grid-column:1/-1;justify-content:center;font-size:12px;" onclick="document.getElementById(\'fileInpPpt\').click()">📊 PowerPoint</button></div><input type="file" id="fileInpTxt" accept=".txt,.md,.csv" style="display:none;" onchange="loadFileTxt(event)"/><input type="file" id="fileInpPdf" accept=".pdf" style="display:none;" onchange="loadFilePdf(event)"/><input type="file" id="fileInpImg" accept="image/*" style="display:none;" onchange="loadFileImg(event)"/><input type="file" id="fileInpDoc" accept=".docx,.doc" style="display:none;" onchange="loadFileDoc(event)"/><input type="file" id="fileInpPpt" accept=".pptx,.ppt" style="display:none;" onchange="loadFilePpt(event)"/><div id="fileStatus" style="display:none;font-size:12px;padding:8px 12px;border-radius:8px;background:var(--bg3);color:#4ecdc4;"></div><button class="btn btn-p" style="justify-content:center;" onclick="saveSub()">Fach speichern</button></div>';
+    return;
+  }
+  if(studyView==='plan'&&studySel){
+    let h='<div style="display:flex;align-items:center;gap:8px;" class="anim"><button class="btn btn-g" style="padding:8px;" onclick="studyView=\'list\';renderStudy()">← Zurück</button><h2 style="font-size:16px;">'+studySel.name+'</h2></div>';
+    if(!studyPlan) h+='<button class="btn btn-p" id="planBtn" style="justify-content:center;" onclick="genPlan()">📅 Lernplan erstellen</button>';
+    if(studyPlan) h+='<div class="card anim"><div style="font-size:13px;line-height:1.8;white-space:pre-wrap;">'+studyPlan+'</div></div>';
+    const savedQuiz=LS.get('quiz_'+studySel.id,null);
+    h+='<div class="card anim" style="display:flex;flex-direction:column;gap:8px;">';
+    h+='<div style="font-weight:700;font-size:14px;">🧠 Quiz</div>';
+    if(savedQuiz&&savedQuiz.questions&&savedQuiz.questions.length>0){
+      h+='<div style="font-size:12px;color:#4ecdc4;">✅ Gespeichertes Quiz: '+savedQuiz.questions.length+' Fragen'+(savedQuiz.filter?' · Bereich: '+savedQuiz.filter:'')+' · Erstellt '+savedQuiz.created+'</div>';
+      h+='<div style="font-size:12px;color:var(--txt2);">Fortschritt: Frage '+(savedQuiz.qi+1)+' von '+savedQuiz.questions.length+'</div>';
+      h+='<button class="btn btn-p" style="justify-content:center;" onclick="loadSavedQuiz('+studySel.id+')">▶ Quiz fortsetzen</button>';
+      h+='<button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'newQuizArea\').style.display=\'block\'">🔄 Neues Quiz erstellen</button>';
+      h+='<div id="newQuizArea" style="display:none;border-top:1px solid var(--bg4);padding-top:8px;">';
+    } else {
+      h+='<div id="newQuizArea">';
+    }
+    h+='<div style="font-size:12px;color:var(--txt2);">Welcher Bereich soll abgefragt werden?</div>';
+    h+='<input class="inp" id="quizFilter" placeholder="z.B. 4.2-5.1, Stücklisten, ABC-Analyse… (leer = alles)"/>';
+    h+='<button class="btn btn-p" style="justify-content:center;" onclick="startQuizWithFilter('+studySel.id+')">🧠 Neues Quiz erstellen</button>';
+    h+='</div>';
+    h+='</div>';
+    pg.innerHTML=h; return;
+  }
+  if(studyView==='quiz'){
+    // Load saved quiz if none in memory
+    if(studyQuiz.length===0&&studySel){
+      const saved=LS.get('quiz_'+studySel.id,null);
+      if(saved){studyQuiz=saved.questions;studyQI=saved.qi||0;}
+    }
+    if(studyQuiz.length>0){
+      const q=studyQuiz[studyQI];
+      let h='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;" class="anim">';
+      h+='<button class="btn btn-g" style="padding:8px;" onclick="studyView=\'list\';renderStudy()">← Zurück</button>';
+      h+='<h2 style="font-size:15px;flex:1;margin:0 8px;">'+studySel.name+'</h2>';
+      h+='<button class="btn btn-g" style="padding:6px 10px;font-size:11px;" onclick="regenQuiz()">🔄 Neu</button>';
+      h+='</div>';
+      h+='<div style="display:flex;align-items:center;gap:8px;" class="anim"><div class="progress-bar" style="flex:1;"><div class="progress-fill" style="width:'+((studyQI+1)/studyQuiz.length*100)+'%;background:var(--acc);"></div></div><span style="color:var(--txt2);font-size:12px;">Frage '+(studyQI+1)+' von '+studyQuiz.length+'</span></div>';
+      h+='<div class="card anim"><div style="font-weight:800;font-size:15px;margin-bottom:6px;">'+q.question+'</div>';
+      if(q.hint) h+='<div style="font-size:12px;color:#ffd166;margin-bottom:9px;">💡 '+q.hint+'</div>';
+      h+='<textarea class="inp" id="ansInp" placeholder="Deine Antwort…" rows="4" style="resize:none;margin-bottom:8px;"></textarea>';
+      h+='<button class="btn btn-p" id="checkBtn" style="width:100%;justify-content:center;" onclick="checkAnswer()">Antwort prüfen</button></div>';
+      h+='<div id="fbBox" style="display:none;" class="card anim"></div>';
+      pg.innerHTML=h; return;
+    }
+    // No quiz yet - go to plan view
+    studyView='plan'; renderStudy(); return;
+  }
+  studyView='list'; renderStudy();
+}
+function regenQuiz(){
+  if(!studySel)return;
+  LS.set('quiz_'+studySel.id,null);
+  studyQuiz=[];studyQI=0;
+  studyView='plan';renderStudy();
+}
+function loadSavedQuiz(id){
+  studySel=LS.get('study_subs',[]).find(s=>s.id===id)||studySel;
+  const saved=LS.get('quiz_'+id,null);
+  if(saved){studyQuiz=saved.questions;studyQI=saved.qi||0;}
+  studyView='quiz';renderStudy();
+}
+function appendToContent(text,filename){
+  const ta=document.getElementById('subContent');
+  const st=document.getElementById('fileStatus');
+  if(ta) ta.value+=(ta.value?String.fromCharCode(10,10):'')+text.substring(0,5000);
+  if(st){st.textContent='✅ '+filename+' geladen';st.style.display='block';st.style.color='#4ecdc4';}
+}
+function loadFileTxt(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>appendToContent(String(ev.target.result),f.name);r.readAsText(f);}
+function loadFilePdf(e){
+  const f=e.target.files[0];if(!f)return;
+  const st=document.getElementById('fileStatus');
+  if(st){st.textContent='⏳ PDF wird verarbeitet…';st.style.display='block';st.style.color='#ffd166';}
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      if(!window.pdfjsLib){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';}
+      const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(ev.target.result)}).promise;
+      let text='[PDF: '+f.name+']'+String.fromCharCode(10,10);
+      for(let i=1;i<=Math.min(pdf.numPages,15);i++){const pg2=await pdf.getPage(i);const tc=await pg2.getTextContent();text+='Seite '+i+': '+tc.items.map(x=>x.str).join(' ')+String.fromCharCode(10);}
+      appendToContent(text,f.name);
+    }catch(err){if(st){st.textContent='❌ '+err.message;st.style.color='#ff4d6d';}}
+  };
+  r.readAsArrayBuffer(f);
+}
+function loadFileImg(e){
+  const f=e.target.files[0];if(!f)return;
+  const st=document.getElementById('fileStatus');
+  if(st){st.textContent='⏳ Bild wird analysiert…';st.style.display='block';st.style.color='#ffd166';}
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      const key=getKey();if(!key){if(st){st.textContent='❌ Kein API-Key.';st.style.color='#ff4d6d';}return;}
+      const base64=ev.target.result.split(',')[1];
+      const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model:'meta-llama/llama-4-scout-17b-16e-instruct',messages:[{role:'user',content:[{type:'image_url',image_url:{url:'data:'+(f.type||'image/jpeg')+';base64,'+base64}},{type:'text',text:'Lies den Text aus diesem Bild ab. Nur den Text.'}]}],max_tokens:2000})});
+      const d=await res.json();
+      if(d.error){if(st){st.textContent='❌ '+d.error.message;st.style.color='#ff4d6d';}return;}
+      appendToContent('[Bild: '+f.name+']'+String.fromCharCode(10,10)+(d.choices[0].message.content||''),f.name);
+    }catch(err){if(st){st.textContent='❌ '+err.message;st.style.color='#ff4d6d';}}
+  };
+  r.readAsDataURL(f);
+}
+function loadFileDoc(e){
+  const f=e.target.files[0];if(!f)return;
+  const st=document.getElementById('fileStatus');
+  if(st){st.textContent='⏳ Word…';st.style.display='block';st.style.color='#ffd166';}
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      if(!window.mammoth){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+      const result=await window.mammoth.extractRawText({arrayBuffer:ev.target.result});
+      appendToContent('[Word: '+f.name+']'+String.fromCharCode(10,10)+result.value,f.name);
+    }catch(err){if(st){st.textContent='❌ '+err.message;st.style.color='#ff4d6d';}}
+  };
+  r.readAsArrayBuffer(f);
+}
+function loadFilePpt(e){
+  const f=e.target.files[0];if(!f)return;
+  const st=document.getElementById('fileStatus');
+  if(st){st.textContent='⏳ PowerPoint…';st.style.display='block';st.style.color='#ffd166';}
+  const r=new FileReader();
+  r.onload=async ev=>{
+    try{
+      if(!window.JSZip){await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
+      const zip=await window.JSZip.loadAsync(ev.target.result);
+      let text='[PPT: '+f.name+']'+String.fromCharCode(10,10);let slideNum=0;
+      const sf=Object.keys(zip.files).filter(n=>/ppt\/slides\/slide\d+\.xml$/.test(n)).sort();
+      for(const sn of sf){slideNum++;const xml=await zip.files[sn].async('string');const m=xml.match(/<a:t[^>]*>([^<]+)<\/a:t>/g)||[];const t2=m.map(x=>x.replace(/<[^>]+>/g,'')).filter(t=>t.trim()).join(' ');if(t2.trim())text+='Folie '+slideNum+': '+t2+String.fromCharCode(10);}
+      appendToContent(text,f.name);
+    }catch(err){if(st){st.textContent='❌ '+err.message;st.style.color='#ff4d6d';}}
+  };
+  r.readAsArrayBuffer(f);
+}
+function saveSub(){
+  const name=(document.getElementById('subName')||{}).value||'';
+  const cont=(document.getElementById('subContent')||{}).value||'';
+  if(!name||!cont){alert('Bitte Name und Inhalt eingeben.');return;}
+  const subs=LS.get('study_subs',[]);
+  subs.unshift({id:Date.now(),name,content:cont,created:new Date().toLocaleDateString('de-DE')});
+  LS.set('study_subs',subs);studyView='list';renderStudy();
+}
+function deleteSub(id){LS.set('study_subs',LS.get('study_subs',[]).filter(s=>s.id!==id));renderStudy();}
+function openPlan(id){studySel=LS.get('study_subs',[]).find(s=>s.id===id);studyPlan='';studyView='plan';renderStudy();}
+async function genPlan(){
+  const btn=document.getElementById('planBtn');
+  if(btn)btn.innerHTML='<span class="spin"></span> Erstelle Plan…';
+  studyPlan=await aiCall('Erstelle einen detaillierten Lernplan für: '+studySel.name+String.fromCharCode(10,10)+'Inhalt:'+String.fromCharCode(10)+studySel.content.substring(0,2000));
+  renderStudy();
+}
+function startQuizWithFilter(id){
+  studySel=LS.get('study_subs',[]).find(s=>s.id===id)||studySel;
+  const filterEl=document.getElementById('quizFilter');
+  const filter=filterEl?filterEl.value.trim():'';
+  startQuizCore(filter);
+}
+async function startQuiz(id){
+  studySel=LS.get('study_subs',[]).find(s=>s.id===id)||studySel;
+  if(!studySel)return;
+  studyView='plan'; renderStudy();
+}
+async function startQuizCore(filter){
+  if(!studySel)return;
+  studyView='quiz';
+  const pg=document.getElementById('page-study');
+
+  // Extract relevant section if filter given
+  let contentToUse=studySel.content;
+  if(filter){
+    const lines=contentToUse.split('\n');
+    const terms=filter.toLowerCase().split(/[-\u2013,\s]+/).filter(t=>t.length>2);
+    let startIdx=-1,endIdx=lines.length;
+    for(let i=0;i<lines.length;i++){
+      if(startIdx===-1&&terms.some(t=>lines[i].toLowerCase().includes(t))) startIdx=Math.max(0,i-1);
+      if(startIdx>-1&&i>startIdx+20){
+        const lline=lines[i].toLowerCase();
+        if(/^##\s*slide\s*\d+/.test(lines[i])&&!terms.some(t=>lline.includes(t))&&i>startIdx+30){endIdx=i;break;}
+      }
+    }
+    if(startIdx>-1) contentToUse=lines.slice(startIdx,endIdx).join('\n');
+  }
+
+  // Split content into chunks of 2500 chars each for multiple API calls
+  const CHUNK=2000;
+  const chunks=[];
+  for(let i=0;i<contentToUse.length;i+=CHUNK) chunks.push(contentToUse.slice(i,i+CHUNK));
+  const totalChunks=Math.min(chunks.length,10); // max 10 chunks = up to ~40 questions
+
+  // Show loading UI
+  function updateProgress(cur,tot){
+    const p=document.getElementById('quizProg');
+    const s=document.getElementById('quizStatus');
+    if(p) p.style.width=Math.round((cur/tot)*100)+'%';
+    if(s) s.textContent='⏳ Erstelle Quiz… Abschnitt '+cur+' von '+tot+' wird verarbeitet…';
+  }
+  pg.innerHTML='<div style="padding:32px 16px;text-align:center;color:var(--txt2);">'+
+    '<div id="quizStatus">⏳ Starte Quiz-Erstellung…</div>'+
+    '<div class="progress-bar" style="margin-top:14px;height:10px;"><div id="quizProg" class="progress-fill" style="width:0%;background:var(--acc);transition:width .5s;"></div></div>'+
+    '<div style="margin-top:10px;font-size:12px;color:var(--txt2);">'+totalChunks+' Abschnitte · je 4 Fragen = ca. '+(totalChunks*4)+' Fragen gesamt</div>'+
+    '</div>';
+
+  let allQuestions=[];
+  const filterHint=filter?' Fokus auf: '+filter+'.':'';
+
+  for(let ci=0;ci<totalChunks;ci++){
+    updateProgress(ci+1,totalChunks);
+    const chunk=chunks[ci];
+    const prompt=
+      'Fach: '+studySel.name+'. '+filterHint+String.fromCharCode(10)+
+      'Erstelle GENAU 4 Prüfungsfragen zu diesem Lernstoffabschnitt:'+String.fromCharCode(10)+
+      chunk+String.fromCharCode(10,10)+
+      'REGELN: Fragen direkt aus dem Text, spezifische Definitionen/Unterschiede, KEINE allgemeinen Fragen.'+String.fromCharCode(10)+
+      'Antworte AUSSCHLIESSLICH mit diesem JSON (nichts davor, nichts danach):'+String.fromCharCode(10)+
+      '[{"question":"Frage 1","hint":"Hinweis 1"},{"question":"Frage 2","hint":"Hinweis 2"},{"question":"Frage 3","hint":"Hinweis 3"},{"question":"Frage 4","hint":"Hinweis 4"}]';
+
+    const q=await aiCall(prompt,true);
+    if(q&&Array.isArray(q)) allQuestions=allQuestions.concat(q);
+    // Small delay to avoid rate limiting
+    if(ci<totalChunks-1) await new Promise(r=>setTimeout(r,800));
+  }
+
+  if(allQuestions.length>0){
+    // Shuffle for variety
+    for(let i=allQuestions.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [allQuestions[i],allQuestions[j]]=[allQuestions[j],allQuestions[i]];
+    }
+    studyQuiz=allQuestions;studyQI=0;
+  } else {
+    studyQuiz=[
+      {question:'Welche Informationsgrundlagen braucht die Arbeitsvorbereitung?',hint:'Stammdaten Personal, Betriebsmittel, Zeichnungen, Nummerungssysteme'},
+      {question:'Was unterscheidet Baukasten- von Mengenstückliste?',hint:'Baukasten = nächsttiefere Ebene, Mengen = alle Rohstoffe gesamt'},
+      {question:'Was ist eine Erzeugnisstruktur?',hint:'Aufbau eines Produkts aus E, BG, Z, T, R'}
+    ];
+    studyQI=0;
+  }
+  LS.set('quiz_'+studySel.id,{questions:studyQuiz,qi:0,filter:filter,created:new Date().toLocaleDateString('de-DE')});
+  renderStudy();
+}
+async function checkAnswer(){
+  const btn=document.getElementById('checkBtn');
+  const inp=document.getElementById('ansInp');
+  const fb=document.getElementById('fbBox');
+  if(!inp||!fb||!inp.value.trim()){if(inp&&!inp.value.trim())alert('Bitte Antwort eingeben.');return;}
+  if(btn)btn.innerHTML='<span class="spin"></span> Prüfe…';
+  const r=await aiCall('Fach: '+studySel.name+String.fromCharCode(10)+'Lernstoff: '+studySel.content.substring(0,1500)+String.fromCharCode(10)+'Frage: '+studyQuiz[studyQI].question+String.fromCharCode(10)+'Antwort: '+inp.value+String.fromCharCode(10,10)+'1. Richtig/Teilweise/Falsch?'+String.fromCharCode(10)+'2. Was war gut?'+String.fromCharCode(10)+'3. Was fehlt?'+String.fromCharCode(10)+'4. Musterlösung.');
+  fb.innerHTML='<div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">'+r+'</div>'+(studyQI<studyQuiz.length-1?'<button class="btn btn-p" style="margin-top:10px;width:100%;justify-content:center;" onclick="nextQ()">Nächste →</button>':'<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:8px;text-align:center;color:#4ecdc4;font-weight:700;">✅ Quiz abgeschlossen!</div>');
+  fb.style.display='block';
+  if(btn)btn.textContent='Antwort prüfen';
+}
+function nextQ(){
+  studyQI++;
+  if(studySel) LS.set('quiz_'+studySel.id,{questions:studyQuiz,qi:studyQI,created:new Date().toLocaleDateString('de-DE')});
+  const fb=document.getElementById('fbBox');if(fb)fb.style.display='none';
+  renderStudy();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// NOTES
+// ════════════════════════════════════════════════════════════════════════════
+const NCOLS=['#7c6af7','#f26b8a','#4ecdc4','#ffd166','#a8dadc','#e9c46a'];
+let editingNote=null;
+function renderNotes(){
+  const notes=LS.get('notes',[]);
+  const pg=document.getElementById('page-notes');
+  if(editingNote!==null){
+    const n=notes.find(x=>x.id===editingNote)||{title:'',content:'',color:'#7c6af7'};
+    let h='<div style="display:flex;align-items:center;gap:8px;" class="anim"><button class="btn btn-g" style="padding:8px;" onclick="editingNote=null;renderNotes()">← Zurück</button><h2>Notiz bearbeiten</h2></div>';
+    h+='<div class="anim" style="display:flex;flex-direction:column;gap:8px;">';
+    h+='<input class="inp" id="nTitle" value="'+n.title.replace(/"/g,'&quot;')+'" placeholder="Titel…"/>';
+    h+='<textarea class="inp" id="nContent" rows="12" style="resize:none;">'+n.content+'</textarea>';
+    h+='<div style="display:flex;gap:7px;align-items:center;">';
+    h+=NCOLS.map(c=>'<button onclick="setNoteColor(\''+c+'\')" style="width:22px;height:22px;border-radius:50%;background:'+c+';border:'+(n.color===c?'3px solid #fff':'2px solid transparent')+';"></button>').join('');
+    h+='</div><button class="btn btn-p" style="justify-content:center;" onclick="saveNote()">Speichern</button></div>';
+    pg.innerHTML=h; return;
+  }
+  let h='<div style="display:flex;align-items:center;justify-content:space-between;" class="anim"><h2>📝 Notizen</h2><button class="btn btn-p" style="padding:7px 13px;font-size:12px;" onclick="newNote()">+ Neu</button></div>';
+  if(notes.length===0) h+='<div style="text-align:center;color:var(--txt2);padding:20px;font-size:14px;">Noch keine Notizen.</div>';
+  h+='<div class="grid2">';
+  h+=notes.map(n=>'<div class="card anim" style="border-top:3px solid '+n.color+';cursor:pointer;position:relative;padding:12px;" onclick="editNote('+n.id+')"><div style="font-weight:800;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px;">'+(n.title||'Ohne Titel')+'</div><div style="font-size:11px;color:var(--txt2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">'+n.content+'</div><div style="font-size:10px;color:var(--txt2);margin-top:7px;">'+n.created+'</div><button style="position:absolute;top:8px;right:8px;color:#f26b8a;font-size:14px;" onclick="event.stopPropagation();deleteNote('+n.id+')">✕</button></div>').join('');
+  h+='</div>';
+  pg.innerHTML=h;
+}
+function newNote(){
+  const notes=LS.get('notes',[]);const id=Date.now();
+  notes.unshift({id,title:'',content:'',color:'#7c6af7',created:new Date().toLocaleDateString('de-DE')});
+  LS.set('notes',notes);editingNote=id;renderNotes();
+}
+function editNote(id){editingNote=id;renderNotes();}
+function setNoteColor(c){LS.set('notes',LS.get('notes',[]).map(n=>n.id===editingNote?{...n,color:c}:n));renderNotes();}
+function saveNote(){
+  LS.set('notes',LS.get('notes',[]).map(n=>n.id===editingNote?{...n,title:(document.getElementById('nTitle')||{}).value||'',content:(document.getElementById('nContent')||{}).value||''}:n));
+  editingNote=null;renderNotes();
+}
+function deleteNote(id){LS.set('notes',LS.get('notes',[]).filter(n=>n.id!==id));renderNotes();}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Täglicher Reset: Kalorien & Schritte bei neuem Tag auf 0
+(function(){
+  const today=new Date().toDateString();
+  if(LS.get('last_cal_day','')!==today){
+    LS.set('cal_today',[]);
+    LS.set('gym_steps',0);
+    LS.set('last_cal_day',today);
+    console.log('Täglicher Reset: '+today);
+  }
+})();
+renderHome();
+if(!getKey())setTimeout(openSettings,500);
+
+// Service Worker
+if('serviceWorker' in navigator){
+  const sw="self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));";
+  const b=new Blob([sw],{type:'application/javascript'});
+  navigator.serviceWorker.register(URL.createObjectURL(b),{scope:'./'}).catch(()=>{});
+}
+
+</script>
+</body>
+</html>
