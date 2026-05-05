@@ -1034,27 +1034,22 @@ function renderStudy(){
     h+='<div class="card anim" style="display:flex;flex-direction:column;gap:8px;">';
     h+='<div style="font-weight:700;font-size:14px;">🧠 Quiz</div>';
     if(savedQuiz&&savedQuiz.questions&&savedQuiz.questions.length>0){
-      h+='<div style="font-size:12px;color:#4ecdc4;">✅ Gespeichertes Quiz: '+savedQuiz.questions.length+' Fragen'+(savedQuiz.filter?' · Bereich: '+savedQuiz.filter:'')+' · Erstellt '+savedQuiz.created+'</div>';
-      h+='<div style="font-size:12px;color:var(--txt2);">Fortschritt: Frage '+(savedQuiz.qi+1)+' von '+savedQuiz.questions.length+'</div>';
+      h+='<div style="font-size:12px;color:#4ecdc4;margin-bottom:4px;">✅ Gespeichertes Quiz: '+savedQuiz.questions.length+' Fragen'+(savedQuiz.filter?' · Bereich: '+savedQuiz.filter:'')+' · '+savedQuiz.created+'</div>';
+      h+='<div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">Fortschritt: Frage '+(savedQuiz.qi+1)+' von '+savedQuiz.questions.length+'</div>';
       h+='<button class="btn btn-p" style="justify-content:center;" onclick="loadSavedQuiz('+studySel.id+')">▶ Quiz fortsetzen</button>';
-      h+='<button class="btn btn-g" style="justify-content:center;font-size:12px;" onclick="document.getElementById(\'newQuizArea\').style.display=\'block\'">🔄 Neues Quiz erstellen</button>';
-      h+='<div id="newQuizArea" style="display:none;border-top:1px solid var(--bg4);padding-top:8px;">';
+      h+='<div style="border-top:1px solid var(--bg4);padding-top:8px;margin-top:4px;">';
     } else {
-      h+='<div id="newQuizArea">';
+      h+='<div>';
     }
-    h+='<div style="font-size:12px;color:var(--txt2);">Welcher Bereich soll abgefragt werden?</div>';
-    h+='<input class="inp" id="quizFilter" placeholder="z.B. 4.2-5.1, Stücklisten, ABC-Analyse… (leer = alles)"/>';
+    h+='<div style="font-size:12px;color:var(--txt2);">🔄 Neues Quiz erstellen:</div>';
+    h+='<input class="inp" id="quizFilter" placeholder="z.B. 4.2-5.1, Stücklisten… (leer = ganzer Stoff)"/>';
     h+='<button class="btn btn-p" style="justify-content:center;" onclick="startQuizWithFilter('+studySel.id+')">🧠 Neues Quiz erstellen</button>';
     h+='</div>';
     h+='</div>';
     pg.innerHTML=h; return;
   }
   if(studyView==='quiz'){
-    // Load saved quiz if none in memory
-    if(studyQuiz.length===0&&studySel){
-      const saved=LS.get('quiz_'+studySel.id,null);
-      if(saved){studyQuiz=saved.questions;studyQI=saved.qi||0;}
-    }
+    // Never auto-load - always generate fresh quiz
     if(studyQuiz.length>0){
       const q=studyQuiz[studyQI];
       let h='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;" class="anim">';
