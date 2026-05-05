@@ -1207,7 +1207,7 @@ async function startQuizCore(filter){
   }
 
   // Split content into chunks of 2500 chars each for multiple API calls
-  const CHUNK=2000;
+  const CHUNK=1500;
   const chunks=[];
   for(let i=0;i<contentToUse.length;i+=CHUNK) chunks.push(contentToUse.slice(i,i+CHUNK));
   const totalChunks=Math.min(chunks.length,10); // max 10 chunks = up to ~40 questions
@@ -1231,13 +1231,26 @@ async function startQuizCore(filter){
   for(let ci=0;ci<totalChunks;ci++){
     updateProgress(ci+1,totalChunks);
     const chunk=chunks[ci];
+    // Only use chunk if it has enough real content
+    const chunkWords=chunk.trim().split(/\s+/).length;
+    if(chunkWords<20){
+      // Skip near-empty chunks
+      if(ci<totalChunks-1) await new Promise(r=>setTimeout(r,200));
+      continue;
+    }
     const prompt=
-      'Fach: '+studySel.name+'. '+filterHint+String.fromCharCode(10)+
-      'Erstelle GENAU 4 Prüfungsfragen zu diesem Lernstoffabschnitt:'+String.fromCharCode(10)+
-      chunk+String.fromCharCode(10,10)+
-      'REGELN: Fragen direkt aus dem Text, spezifische Definitionen/Unterschiede, KEINE allgemeinen Fragen.'+String.fromCharCode(10)+
-      'Antworte AUSSCHLIESSLICH mit diesem JSON (nichts davor, nichts danach):'+String.fromCharCode(10)+
-      '[{"question":"Frage 1","hint":"Hinweis 1"},{"question":"Frage 2","hint":"Hinweis 2"},{"question":"Frage 3","hint":"Hinweis 3"},{"question":"Frage 4","hint":"Hinweis 4"}]';
+      'WICHTIG: Nutze AUSSCHLIESSLICH den unten stehenden Text. Verwende KEIN eigenes Wissen über das Thema "'+studySel.name+'".'+String.fromCharCode(10)+
+      filterHint+String.fromCharCode(10)+
+      'Erstelle GENAU 4 Prüfungsfragen NUR basierend auf diesem Text:'+String.fromCharCode(10)+
+      '=== ANFANG TEXT ==='+String.fromCharCode(10)+
+      chunk+String.fromCharCode(10)+
+      '=== ENDE TEXT ==='+String.fromCharCode(10,10)+
+      'STRENGE REGELN:'+String.fromCharCode(10)+
+      '- Fragen NUR aus dem obigen Text, NICHT aus eigenem Wissen'+String.fromCharCode(10)+
+      '- Zitiere konkrete Begriffe, Zahlen oder Definitionen aus dem Text'+String.fromCharCode(10)+
+      '- Falls der Text zu wenig Inhalt hat: erstelle weniger Fragen (auch 1-2 ist ok)'+String.fromCharCode(10)+
+      '- Hint = wörtliches Stichwort aus dem Text'+String.fromCharCode(10)+
+      'NUR JSON: [{"question":"...","hint":"..."},...]';
 
     const q=await aiCall(prompt,true);
     if(q&&Array.isArray(q)) allQuestions=allQuestions.concat(q);
@@ -1269,7 +1282,7 @@ async function checkAnswer(){
   const fb=document.getElementById('fbBox');
   if(!inp||!fb||!inp.value.trim()){if(inp&&!inp.value.trim())alert('Bitte Antwort eingeben.');return;}
   if(btn)btn.innerHTML='<span class="spin"></span> Prüfe…';
-  const r=await aiCall('Fach: '+studySel.name+String.fromCharCode(10)+'Lernstoff: '+studySel.content.substring(0,1500)+String.fromCharCode(10)+'Frage: '+studyQuiz[studyQI].question+String.fromCharCode(10)+'Antwort: '+inp.value+String.fromCharCode(10,10)+'1. Richtig/Teilweise/Falsch?'+String.fromCharCode(10)+'2. Was war gut?'+String.fromCharCode(10)+'3. Was fehlt?'+String.fromCharCode(10)+'4. Musterlösung.');
+  const r=await aiCall('Bewerte diese Antwort NUR anhand des unten stehenden Lernstoffs. Kein eigenes Wissen verwenden.'+String.fromCharCode(10,10)+'=== LERNSTOFF ==='+String.fromCharCode(10)+studySel.content.substring(0,2000)+String.fromCharCode(10)+'=== ENDE ==='+String.fromCharCode(10,10)+'Frage: '+studyQuiz[studyQI].question+String.fromCharCode(10)+'Antwort des Schülers: '+inp.value+String.fromCharCode(10,10)+'1. Richtig/Teilweise/Falsch?'+String.fromCharCode(10)+'2. Was war gut?'+String.fromCharCode(10)+'3. Was fehlt oder ist falsch?'+String.fromCharCode(10)+'4. Musterlösung aus dem Lernstoff.');
   fb.innerHTML='<div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">'+r+'</div>'+(studyQI<studyQuiz.length-1?'<button class="btn btn-p" style="margin-top:10px;width:100%;justify-content:center;" onclick="nextQ()">Nächste →</button>':'<div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:8px;text-align:center;color:#4ecdc4;font-weight:700;">✅ Quiz abgeschlossen!</div>');
   fb.style.display='block';
   if(btn)btn.textContent='Antwort prüfen';
